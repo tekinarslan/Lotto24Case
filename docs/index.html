@@ -407,9 +407,9 @@
     <div class="sidebar-footer">
       <div class="badge-status" style="background-color: var(--success-light); color: var(--success);">
         <span class="badge-pulse" style="background-color: var(--success);"></span>
-        <span>Phase 2 Completed</span>
+        <span>Phase 3 Completed</span>
       </div>
-      <div style="margin-top: 6px; font-size: 11px;">Next: Phase 3 Data & Ktor</div>
+      <div style="margin-top: 6px; font-size: 11px;">Next: Phase 4 Formatters</div>
     </div>
   </aside>
 
@@ -781,17 +781,23 @@
       <div class="phase-card">
         <div class="phase-header">
           <span class="phase-title">Phase 3: Data Layer, Ktor Client & Resilient Mappers</span>
-          <span class="pill pill-pending">Pending</span>
+          <span class="pill pill-done">Completed</span>
         </div>
         <p>Ktor API client, DTOs matching Lotto24 schema, resilient null-safe parsing, and pure domain mappers.</p>
         <div class="checklist-item">
-          <input type="checkbox"> Create <code>LotteryResponseDto</code>, <code>LastDrawDto</code>, <code>NextDrawDto</code>
+          <input type="checkbox" checked disabled> Ktor HTTP client configured with ContentNegotiation, Timeouts & Logging (<code>KtorClientFactory</code>)
         </div>
         <div class="checklist-item">
-          <input type="checkbox"> Implement <code>Lotto24ApiService</code> with Ktor HTTP client
+          <input type="checkbox" checked disabled> Created <code>LotteryResponseDto</code>, <code>LastDrawDto</code>, <code>NextDrawDto</code>, <code>JackpotDto</code>
         </div>
         <div class="checklist-item">
-          <input type="checkbox"> Implement DTO to Domain Mapper with defensive fallback logic
+          <input type="checkbox" checked disabled> Implemented <code>Lotto24ApiService</code> with Ktor HTTP client
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox" checked disabled> Implemented <code>LotteryDtoMapper</code> with defensive null handling and ISO instant parsing
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox" checked disabled> Comprehensive unit tests: <code>LotteryDtoMapperTest</code> (3/3) & <code>Lotto24ApiServiceTest</code> (2/2 with MockEngine)
         </div>
       </div>
 

@@ -47,11 +47,12 @@
   <div class="phase-card">
     <div class="phase-header">
       <span class="phase-title">Phase 3: Data Layer, Ktor Client & Resilient Mappers</span>
-      <span class="pill pill-pending">Pending</span>
+      <span class="pill pill-done">Completed</span>
     </div>
-    <div class="checklist-item">○ Ktor HTTP client configuration with ContentNegotiation</div>
-    <div class="checklist-item">○ DTO definitions for Lotto24 drawinfo endpoint</div>
-    <div class="checklist-item">○ Resilient mapping logic with defensive null handling</div>
+    <div class="checklist-item">✓ Ktor HTTP client configured with ContentNegotiation, Timeouts & Logging (<code>KtorClientFactory</code>)</div>
+    <div class="checklist-item">✓ DTO definitions matching Lotto24 schema (<code>LotteryResponseDto</code>, <code>LastDrawDto</code>, <code>NextDrawDto</code>, <code>JackpotDto</code>)</div>
+    <div class="checklist-item">✓ Resilient mapping logic (<code>LotteryDtoMapper</code>) with defensive null and timezone handling</div>
+    <div class="checklist-item">✓ Unit tests passing: <code>LotteryDtoMapperTest</code> (3/3), <code>Lotto24ApiServiceTest</code> (2/2 with Ktor MockEngine)</div>
   </div>
 
   <div class="phase-card">
