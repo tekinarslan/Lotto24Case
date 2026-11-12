@@ -57,12 +57,13 @@
 
   <div class="phase-card">
     <div class="phase-header">
-      <span class="phase-title">Phase 4: Formatters (Currency & DateTime) + Unit Tests</span>
-      <span class="pill pill-pending">Pending</span>
+      <span class="phase-title">Phase 4: Formatters (Currency & DateTime) + Edge-Case Tests</span>
+      <span class="pill pill-done">Completed</span>
     </div>
-    <div class="checklist-item">○ <code>CurrencyFormatter</code> (80000000.00 EUR -> 80 MIO €)</div>
-    <div class="checklist-item">○ <code>DateTimeFormatter</code> (German localized weekdays: Fr., 18.09.2020)</div>
-    <div class="checklist-item">○ 100% unit test coverage for formatters</div>
+    <div class="checklist-item">✓ <code>CurrencyFormatter</code> (80,000,000 EUR -> 80 MIO €, badge "80 MIO", sub-million & German decimal commas)</div>
+    <div class="checklist-item">✓ <code>LotteryDateTimeFormatter</code> (German localized format: <code>Fr., 18.09.2020</code>, <code>Nächste Ziehung: Mi., 23.09.2020</code>)</div>
+    <div class="checklist-item">✓ Edge-case unit testing: Berlin vs Helsinki timezone day boundaries, leap years, null and malformed inputs</div>
+    <div class="checklist-item">✓ Unit tests passing: <code>CurrencyFormatterTest</code> (6/6), <code>LotteryDateTimeFormatterTest</code> (8/8)</div>
   </div>
 
   <div class="phase-card">

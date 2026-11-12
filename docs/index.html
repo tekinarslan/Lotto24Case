@@ -407,9 +407,9 @@
     <div class="sidebar-footer">
       <div class="badge-status" style="background-color: var(--success-light); color: var(--success);">
         <span class="badge-pulse" style="background-color: var(--success);"></span>
-        <span>Phase 3 Completed</span>
+        <span>Phase 4 Completed</span>
       </div>
-      <div style="margin-top: 6px; font-size: 11px;">Next: Phase 4 Formatters</div>
+      <div style="margin-top: 6px; font-size: 11px;">Next: Phase 5 In-Memory State & Connection Handling</div>
     </div>
   </aside>
 
@@ -803,35 +803,35 @@
 
       <div class="phase-card">
         <div class="phase-header">
-          <span class="phase-title">Phase 4: Formatters (Currency & DateTime) + Unit Tests</span>
-          <span class="pill pill-pending">Pending</span>
+          <span class="phase-title">Phase 4: Formatters (Currency & DateTime) + Edge-Case Tests</span>
+          <span class="pill pill-done">Completed</span>
         </div>
-        <p>Solid formatting utilities for German lottery presentation with 100% unit test coverage.</p>
+        <p>Formatting utilities for German lottery presentation with focus on edge-case testing.</p>
         <div class="checklist-item">
-          <input type="checkbox"> <code>CurrencyFormatter</code>: <code>80000000.00 EUR</code> -> <code>80 MIO €</code>
-        </div>
-        <div class="checklist-item">
-          <input type="checkbox"> <code>DateTimeFormatter</code>: ISO-8601 -> German weekday format (e.g. <code>Fr., 18.09.2020</code>)
+          <input type="checkbox" checked disabled> <code>CurrencyFormatter</code>: <code>80,000,000 EUR</code> -> <code>80 MIO €</code>, badge <code>80 MIO</code>, sub-million dots and German decimal commas
         </div>
         <div class="checklist-item">
-          <input type="checkbox"> Comprehensive unit tests covering edge cases (0.00, null jackpot, midnight timezones)
+          <input type="checkbox" checked disabled> <code>LotteryDateTimeFormatter</code>: Localized German weekdays (e.g. <code>Fr., 18.09.2020</code>, <code>Nächste Ziehung: Mi., 23.09.2020</code>)
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox" checked disabled> Unit tests covering edge cases: Berlin vs Helsinki timezone day boundaries, leap year, null/zero jackpots, malformed inputs (14 tests passing)
         </div>
       </div>
 
       <div class="phase-card">
         <div class="phase-header">
-          <span class="phase-title">Phase 5: Offline-First Repository & Cache</span>
+          <span class="phase-title">Phase 5: In-Memory State & Connection Error Handling</span>
           <span class="pill pill-pending">Pending</span>
         </div>
-        <p>Graceful offline experience. Network-first with local cache fallback and connection status indicators.</p>
+        <p>In-memory state retention on network failure with banner notification; explicit fixture fallback on 404/network error.</p>
         <div class="checklist-item">
-          <input type="checkbox"> Implement <code>LotteryLocalDataSource</code> (Lightweight persistent storage)
+          <input type="checkbox"> Implement <code>LotteryRepositoryImpl</code> with in-memory state retention
         </div>
         <div class="checklist-item">
-          <input type="checkbox"> Implement <code>LotteryRepositoryImpl</code> with cache fallback
+          <input type="checkbox"> Support explicit sample fixture loading on 404 / connection error
         </div>
         <div class="checklist-item">
-          <input type="checkbox"> Unit tests with Ktor <code>MockEngine</code> for online/offline/error scenarios
+          <input type="checkbox"> Unit tests with Ktor <code>MockEngine</code> & <code>Turbine</code> for live, fixture, and network failure flows
         </div>
       </div>
 
