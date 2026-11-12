@@ -35,11 +35,13 @@
   <div class="phase-card">
     <div class="phase-header">
       <span class="phase-title">Phase 2: Domain Layer & Polymorphic Models</span>
-      <span class="pill pill-pending">Pending</span>
+      <span class="pill pill-done">Completed</span>
     </div>
-    <div class="checklist-item">○ Pure Kotlin models: <code>LotteryDraw</code> (Lotto6aus49 vs Eurojackpot), <code>Jackpot</code>, <code>BallItem</code></div>
-    <div class="checklist-item">○ Domain repository contract: <code>LotteryRepository</code></div>
-    <div class="checklist-item">○ Domain use cases: <code>GetLotteryResultsUseCase</code></div>
+    <div class="checklist-item">✓ Pure Kotlin models (zero Compose imports): <code>LotteryDraw</code> (Lotto6aus49 vs Eurojackpot), <code>Jackpot</code> (String amount), <code>SupplementaryLottery</code></div>
+    <div class="checklist-item">✓ Single Source of Truth enforced (UI display balls decoupled and deferred to presentation layer)</div>
+    <div class="checklist-item">✓ Domain repository contract: <code>LotteryRepository</code> (pure Kotlin <code>List&lt;LotteryDraw&gt;</code>)</div>
+    <div class="checklist-item">✓ Domain use case: <code>GetLotteryResultsUseCase</code></div>
+    <div class="checklist-item">✓ Unit tests passing: <code>LotteryDrawModelTest</code> (4/4), <code>GetLotteryResultsUseCaseTest</code> (2/2 with Turbine)</div>
   </div>
 
   <div class="phase-card">
@@ -64,12 +66,12 @@
 
   <div class="phase-card">
     <div class="phase-header">
-      <span class="phase-title">Phase 5: Offline-First Repository & Cache</span>
+      <span class="phase-title">Phase 5: In-Memory State & Connection Handling</span>
       <span class="pill pill-pending">Pending</span>
     </div>
-    <div class="checklist-item">○ <code>LotteryLocalDataSource</code> cache abstraction and implementation</div>
-    <div class="checklist-item">○ Offline-first <code>LotteryRepositoryImpl</code></div>
-    <div class="checklist-item">○ Unit tests with Ktor <code>MockEngine</code> for online/offline/failure states</div>
+    <div class="checklist-item">○ In-memory state retention on network failure with banner notification</div>
+    <div class="checklist-item">○ <code>LotteryRepositoryImpl</code> with Ktor HTTP client</div>
+    <div class="checklist-item">○ Unit tests with Ktor <code>MockEngine</code> for network success and connection error fallback</div>
   </div>
 
   <div class="phase-card">

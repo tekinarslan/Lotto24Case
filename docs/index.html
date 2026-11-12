@@ -407,9 +407,9 @@
     <div class="sidebar-footer">
       <div class="badge-status" style="background-color: var(--success-light); color: var(--success);">
         <span class="badge-pulse" style="background-color: var(--success);"></span>
-        <span>Phase 1 Completed</span>
+        <span>Phase 2 Completed</span>
       </div>
-      <div style="margin-top: 6px; font-size: 11px;">Next: Phase 2 Domain Layer</div>
+      <div style="margin-top: 6px; font-size: 11px;">Next: Phase 3 Data & Ktor</div>
     </div>
   </aside>
 
@@ -758,20 +758,23 @@
       <div class="phase-card">
         <div class="phase-header">
           <span class="phase-title">Phase 2: Domain Layer & Polymorphic Models</span>
-          <span class="pill pill-pending">Pending</span>
+          <span class="pill pill-done">Completed</span>
         </div>
         <p>Designing pure Kotlin domain entities with zero external dependencies. Modeling the fundamental asymmetry between 6aus49 (Superzahl) and Eurojackpot (Eurozahlen).</p>
         <div class="checklist-item">
-          <input type="checkbox"> Define <code>LotteryType</code> (LOTTO_6AUS49, EUROJACKPOT)
+          <input type="checkbox" checked disabled> Pure Kotlin models (zero Compose imports): <code>LotteryDraw</code> (Lotto6aus49 vs Eurojackpot), <code>Jackpot</code> (String amount), <code>SupplementaryLottery</code>
         </div>
         <div class="checklist-item">
-          <input type="checkbox"> Define <code>sealed interface LotteryDraw</code> with concrete implementations
+          <input type="checkbox" checked disabled> Single Source of Truth enforced (UI display balls decoupled and deferred to presentation layer)
         </div>
         <div class="checklist-item">
-          <input type="checkbox"> Define <code>Jackpot</code>, <code>SupplementaryLottery</code> (Spiel 77, Super 6)
+          <input type="checkbox" checked disabled> Domain repository contract: <code>LotteryRepository</code> (pure Kotlin <code>List&lt;LotteryDraw&gt;</code>)
         </div>
         <div class="checklist-item">
-          <input type="checkbox"> Define <code>LotteryRepository</code> interface and <code>GetLotteryResultsUseCase</code>
+          <input type="checkbox" checked disabled> Domain use case: <code>GetLotteryResultsUseCase</code>
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox" checked disabled> Comprehensive unit tests: <code>LotteryDrawModelTest</code> (4/4) & <code>GetLotteryResultsUseCaseTest</code> (2/2 with Turbine)
         </div>
       </div>
 
