@@ -16,5 +16,9 @@ data class DrawResultDto(
     @SerialName("superNumber")
     val superNumber: Int? = null,
     @SerialName("euroNumbers")
-    val euroNumbers: List<Int>? = null
+    val euroNumbers: List<Int>? = null,
+    @SerialName("spiel77")
+    val spiel77: String? = null,
+    @SerialName("super6")
+    val super6: String? = null
 )

@@ -93,16 +93,21 @@ object LotteryDtoMapper {
     }
 
     /**
-     * Extracts supplementary lottery games (Spiel 77 & SUPER6) for LOTTO 6aus49.
-     * If the legacy backend does not supply individual objects for supplementary lotteries,
-     * provides standard values as shown in the case reference.
+     * Extracts supplementary lottery games (Spiel 77 & SUPER6) dynamically from the DTO.
+     * Returns an empty list if not present in the payload (no hardcoded mock values).
      */
     private fun extractSupplementaryLotteries(dto: LotteryResponseDto): List<SupplementaryLottery> {
-        // Sample reference numbers from the UX mockup (Page 2) for LOTTO 6aus49
-        return listOf(
-            SupplementaryLottery(name = "Spiel 77", winningNumber = "7312244"),
-            SupplementaryLottery(name = "SUPER6", winningNumber = "112430")
-        )
+        val result = dto.lastDraw?.drawResult ?: return emptyList()
+        val list = mutableListOf<SupplementaryLottery>()
+
+        if (!result.spiel77.isNullOrBlank()) {
+            list.add(SupplementaryLottery(name = "Spiel 77", winningNumber = result.spiel77.trim()))
+        }
+        if (!result.super6.isNullOrBlank()) {
+            list.add(SupplementaryLottery(name = "SUPER6", winningNumber = result.super6.trim()))
+        }
+
+        return list
     }
 
     private fun parseInstant(dateStr: String?): Instant? {

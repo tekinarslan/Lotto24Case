@@ -26,7 +26,9 @@ object Lotto24ApiFixtures {
               44,
               45
             ],
-            "superNumber": 7
+            "superNumber": 7,
+            "spiel77": "7312244",
+            "super6": "112430"
           },
           "quotas": {
             "WC_1": "5029008.30",

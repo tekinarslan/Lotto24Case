@@ -107,7 +107,8 @@ class LotteryDtoMapperTest {
         assertEquals("6000000.00", lotto6aus49.jackpot?.amount)
         assertTrue(lotto6aus49.jackpot?.hasAmount == true)
         assertEquals("44712847.20", lotto6aus49.totalStake)
-        assertEquals(2, lotto6aus49.supplementaryLotteries.size)
+        // If not in payload, no hardcoded values are injected
+        assertTrue(lotto6aus49.supplementaryLotteries.isEmpty())
 
         // Verify Eurojackpot
         val eurojackpot = domainDraws.filterIsInstance<LotteryDraw.Eurojackpot>().firstOrNull()
@@ -141,6 +142,31 @@ class LotteryDtoMapperTest {
         assertNotNull(draw)
         assertEquals(false, draw.jackpot?.isSupported)
         assertEquals(false, draw.jackpot?.hasAmount)
+    }
+
+    @Test
+    fun `maps supplementary lotteries dynamically from dto when present`() {
+        val dto = LotteryResponseDto(
+            lottery = "6aus49",
+            lastDraw = LastDrawDto(
+                drawIdentifier = "2023-01-21",
+                drawDateUtc = "2023-01-21T18:25:00Z",
+                drawResult = DrawResultDto(
+                    numbers = listOf(4, 19, 24, 43, 44, 45),
+                    superNumber = 7,
+                    spiel77 = "7312244",
+                    super6 = "112430"
+                )
+            )
+        )
+
+        val draw = LotteryDtoMapper.mapSingle(dto) as? LotteryDraw.Lotto6aus49
+        assertNotNull(draw)
+        assertEquals(2, draw.supplementaryLotteries.size)
+        assertEquals("Spiel 77", draw.supplementaryLotteries[0].name)
+        assertEquals("7312244", draw.supplementaryLotteries[0].winningNumber)
+        assertEquals("SUPER6", draw.supplementaryLotteries[1].name)
+        assertEquals("112430", draw.supplementaryLotteries[1].winningNumber)
     }
 
     @Test
