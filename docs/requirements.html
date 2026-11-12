@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CASE STUDY - Lotto24</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #ffffff;
+      color: #1e293b;
+      padding: 40px;
+      line-height: 1.6;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 24px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 28px 0 12px 0;
+    }
+    h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #0f172a;
+      margin: 16px 0 8px 0;
+    }
+    p {
+      font-size: 14px;
+      color: #334155;
+      margin-bottom: 14px;
+    }
+    ul {
+      margin: 8px 0 16px 20px;
+    }
+    li {
+      font-size: 14px;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+    .section-box {
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 18px 22px;
+      margin: 18px 0;
+    }
+    pre {
+      background-color: #0f172a;
+      color: #f8fafc;
+      padding: 16px;
+      border-radius: 6px;
+      font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      line-height: 1.5;
+    }
+    a {
+      color: #2563eb;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .note-text {
+      font-style: italic;
+      color: #475569;
+      margin: 16px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>CASE STUDY</h1>
+
+  <p>Dear candidate!</p>
+  <p>The case study consists of a coding challenge that needs to be solved to showcase your technical abilities. It must contain the source code and resources necessary to build and run the application on a developer’s machine.</p>
+  <p>Therefore, please provide a repository (zip file, link to GitHub, ...) containing all files and assets to build and run the project. Providing the case study with a source code management history that lets reviewers follow the development and thought process made during development is a plus.</p>
+  <p>The case study should also come with a small suite of tests to prove and ensure the stability of the features being built.</p>
+  <p>Of course, we know that Claude can solve this challenge. The case study should not be worked on longer than a few hours. If any feature is not finished do not worry. Showcase your strengths and select the areas you are most comfortable with. It’s a base to pair with other developers, a starting point for a discussion.</p>
+
+  <h2>Introduction</h2>
+  <p>In Germany there are two major draw-based lotteries:</p>
+  <ul>
+    <li><strong>Lotto 6aus49:</strong> In this lottery, players select six numbers from a pool of 49 and an additional "Super Number" between 0 and 9. There is a draw where drawn numbers are compared to picked numbers. The prize depends on how many numbers match the drawn winning numbers.</li>
+    <li><strong>Eurojackpot:</strong> Players choose five numbers from a pool of 50 and two "Euro Numbers" from a separate pool of 12. To win the jackpot, all seven numbers must be correct.</li>
+    <li><strong>Supplementary lotteries:</strong> These are optional lottery games, such as Spiel 77 or Super 6, which can be played alongside the main lottery and offer additional chances to win.</li>
+  </ul>
+
+  <p>Each lottery draw has</p>
+  <ul>
+    <li>A last draw date with draw results (which numbers were drawn on this draw date)</li>
+    <li>Next draw date in the future (in which players can participate)</li>
+    <li>Maybe a jackpot height (directly after a draw it is not there, because it is not known if a player has picked the right numbers, yet)</li>
+  </ul>
+
+  <h2>User Story</h2>
+  <div class="section-box">
+    <p><strong>As a user I want</strong></p>
+    <ul>
+      <li>To install an app on my Android device which is small and just displays the results of my favorite lotteries</li>
+      <li>The last draw results for LOTTO 6aus49 and Eurojackpot</li>
+      <li>The jackpot heights (if there are any)</li>
+      <li>and the next draw date(s) to be visible in a "draw results" screen or (bonus) a draw result widget</li>
+    </ul>
+    <p style="margin-bottom: 0;">so, I can decide if I want to participate in the next draw.</p>
+  </div>
+
+  <h2>Features to be implemented.</h2>
+
+  <h3>Must have:</h3>
+  <ul>
+    <li>Actual numbers are displayed in a ball</li>
+    <li>Next draw date is displayed</li>
+    <li>The jackpot heights are displayed (if applicable)</li>
+    <li>Jetpack Compose should be used as a framework</li>
+  </ul>
+
+  <h3>Bonus:</h3>
+  <ul>
+    <li>There is also a widget</li>
+    <li>If you click anywhere, it will open a link to our website or to our native app’s Play Store page</li>
+    <li>Spiel77 and SUPER6 are also displayed.</li>
+  </ul>
+
+  <h2>UX/UI</h2>
+  <p>You can take this sample UI as reference for your screen and widget (from IOS app):</p>
+  <p class="note-text">Please note the visual difference between “Superzahl” and “Eurozahlen”.</p>
+
+  <h2>API</h2>
+  <p>You can get the draw results from the (legacy) drawinfo API (<a href="https://www.lotto24.de/public/drawinfo" target="_blank">https://www.lotto24.de/public/drawinfo</a>):</p>
+  <p><code>GET https://www.lotto24.de/public/v1/drawinfo/aggregated/6aus49,eurojackpot</code></p>
+
+  <pre><code>[
+ {
+ "lottery": "6aus49",
+ "lastDraw": {
+ "drawIdentifier": "2023-01-21",
+ "lottery": "6aus49",
+ "drawDate": "2023-01-21T19:25:00+01:00",
+ "drawDateUtc": "2023-01-21T18:25:00Z",
+ "drawResult": {
+ "numbers": [
+ 4,
+ 19,
+ 24,
+ 43,
+ 44,
+ 45
+ ],
+ "superNumber": 7
+ },
+ "quotas": {
+ "WC_1": "5029008.30",
+ "WC_2": "769100.10",
+ "WC_3": "13112.50",
+ "WC_4": "5418.60",
+ "WC_5": "169.00",
+ "WC_6": "56.30",
+ "WC_7": "17.30",
+ "WC_8": "11.80",
+ "WC_9": "6.00"
+ },
+ "nonMonetaryQuotas": {},
+ "winners": {
+ "WC_1": 0,
+ "WC_2": 3,
+ "WC_3": 61,
+ "WC_4": 440,
+ "WC_5": 3913,
+ "WC_6": 27821,
+ "WC_7": 77269,
+ "WC_8": 533367,
+ "WC_9": 603493
+ },
+ "totalStake": "44712847.20",
+ "currency": "EUR"
+ },
+ "nextDraw": {
+ "drawIdentifier": "2023-01-25",
+ "lottery": "6aus49",
+ "drawDate": "2023-01-25T18:25:00+01:00",
+ "drawDateUtc": "2023-01-25T17:25:00Z",
+ "timeZone": "Europe/Berlin",
+ "cutofftime": "2023-01-25T17:45:00+01:00",
+ "jackpot": {
+ "drawIdentifier": "2023-01-25",
+ "lottery": "6aus49",
+ "drawDate": "2023-01-25T18:25:00+01:00",
+ "currency": "EUR",
+ "jackpots": {
+ "WC_1": "6000000.00",
+ "WC_2": "1000000.00"
+ },
+ "jackpotSupported": true
+ }
+ },
+ "draws": []
+ },
+ {
+ "lottery": "eurojackpot",
+ "lastDraw": {
+ "drawIdentifier": "2023-01-20",
+ "lottery": "eurojackpot",
+ "drawDate": "2023-01-20T20:00:00+02:00",
+ "drawDateUtc": "2023-01-20T18:00:00Z",
+ "drawResult": {
+ "numbers": [
+ 1,
+ 12,
+ 15,
+ 31,
+ 47
+ ],
+ "euroNumbers": [
+ 9,
+ 10
+ ]
+ },
+ "quotas": {
+ "WC_1": "0.00",
+ "WC_2": "906735.60",
+ "WC_3": "263552.60",
+ "WC_4": "8050.40",
+ "WC_5": "356.00",
+ "WC_6": "192.60",
+ "WC_7": "128.80",
+ "WC_8": "29.40",
+ "WC_9": "21.90",
+ "WC_10": "18.10",
+ "WC_11": "14.40",
+ "WC_12": "10.40"
+ },
+ "nonMonetaryQuotas": {},
+ "winners": {
+ "WC_1": 0,
+ "WC_2": 4,
+ "WC_3": 5,
+ "WC_4": 27,
+ "WC_5": 763,
+ "WC_6": 1551,
+ "WC_7": 1687,
+ "WC_8": 23518,
+ "WC_9": 35240,
+ "WC_10": 80763,
+ "WC_11": 126511,
+ "WC_12": 527464
+ },
+ "totalStake": "54340762.00",
+ "currency": "EUR"
+ },
+ "nextDraw": {
+ "drawIdentifier": "2023-01-24",
+ "lottery": "eurojackpot",
+ "drawDate": "2023-01-24T20:00:00+02:00",
+ "drawDateUtc": "2023-01-24T18:00:00Z",
+ "timeZone": "Europe/Helsinki",
+ "cutofftime": "2023-01-24T19:35:00+02:00",
+ "jackpot": {
+ "drawIdentifier": "2023-01-24",
+ "lottery": "eurojackpot",
+ "drawDate": "2023-01-24T20:00:00+02:00",
+ "currency": "EUR",
+ "jackpots": {
+ "WC_1": "80000000.00",
+ "WC_2": "1000000.00"
+ },
+ "jackpotSupported": true
+ }
+ },
+ "draws": []
+ }
+]</code></pre>
+
+  <p class="note-text">Please note the difference between numbers, superNumber and euroNumbers.</p>
+  <p><strong>Have fun!</strong></p>
+
+</body>
+</html>

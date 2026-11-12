@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tech Stack & Architecture - Lotto24 Case Study</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #fff; color: #0f172a; padding: 32px; line-height: 1.6; }
+    h1 { font-size: 26px; font-weight: 800; margin-bottom: 8px; color: #0f172a; }
+    h2 { font-size: 20px; font-weight: 700; margin: 24px 0 12px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; }
+    h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px 0; }
+    p, li { font-size: 14px; color: #334155; }
+    ul { padding-left: 20px; margin-bottom: 16px; }
+    .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 20px; margin: 16px 0; }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+    th, td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; }
+    th { background: #f1f5f9; }
+    pre { background: #0f172a; color: #f8fafc; padding: 14px; border-radius: 6px; font-size: 12px; overflow-x: auto; }
+    code { font-family: monospace; background: #e2e8f0; padding: 2px 5px; border-radius: 4px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <h1>Technical Stack & Architectural Decisions</h1>
+  <p>Detailed architectural structure, dependency graph, and trade-off rationales.</p>
+
+  <h2>1. Module Topology</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Module Name</th>
+        <th>Gradle Plugin</th>
+        <th>Purpose</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>:androidApp</code></td>
+        <td><code>com.android.application</code></td>
+        <td>Pure Android application host, <code>MainActivity</code>, and <strong>Jetpack Glance AppWidget</strong>.</td>
+      </tr>
+      <tr>
+        <td><code>:shared</code></td>
+        <td><code>com.android.kotlin.multiplatform.library</code></td>
+        <td>Cross-platform logic, Domain models, Ktor networking, Koin DI, and Compose Multiplatform UI in <code>commonMain</code>.</td>
+      </tr>
+      <tr>
+        <td><code>:iosApp</code></td>
+        <td>Xcode / Swift</td>
+        <td>Native iOS entry point wrapping <code>shared</code> Compose UI.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>2. Selected Dependencies & Versions</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Dependency</th>
+        <th>Category</th>
+        <th>Why Selected & Trade-off Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Koin 4.0</strong></td>
+        <td>Dependency Injection</td>
+        <td>First-class KMP support. Hilt cannot run on multiplatform / iOS. Koin has zero annotation processor overhead and native Compose ViewModel support.</td>
+      </tr>
+      <tr>
+        <td><strong>Ktor 3.0</strong></td>
+        <td>Network Client</td>
+        <td>Official Kotlin multiplatform asynchronous HTTP client. MockEngine provides painless network mocking in tests.</td>
+      </tr>
+      <tr>
+        <td><strong>kotlinx.serialization</strong></td>
+        <td>Serialization</td>
+        <td>Compile-time generated JSON serializers, fast, reflection-free.</td>
+      </tr>
+      <tr>
+        <td><strong>kotlinx-datetime</strong></td>
+        <td>Date & Time</td>
+        <td>Multiplatform time calculation and ISO-8601 parsing across Berlin and Helsinki draw timezones.</td>
+      </tr>
+      <tr>
+        <td><strong>kotlinx.collections.immutable</strong></td>
+        <td>Compose Optimization</td>
+        <td>Guarantees Compose compiler stability for list parameters to avoid redundant recompositions.</td>
+      </tr>
+      <tr>
+        <td><strong>Jetpack Glance 1.1</strong></td>
+        <td>Android App Widget</td>
+        <td>Declarative Compose-style AppWidget implementation in <code>:androidApp</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>ComposablePreviewScanner</strong></td>
+        <td>Visual Quality / Testing</td>
+        <td>Automated preview discovery and screenshot testing framework.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>3. Core Architectural Principles</h2>
+  <ul>
+    <li><strong>Unidirectional Data Flow (UDF):</strong> Single <code>StateFlow&lt;DrawResultsUiState&gt;</code> emitted by <code>DrawResultsViewModel</code>.</li>
+    <li><strong>Dependency Inversion:</strong> Domain defines repository and navigator interfaces; Data and Platform layers implement them.</li>
+    <li><strong>Offline-First Resilience:</strong> Cached data is seamlessly served if network fails, accompanied by a non-intrusive offline status banner.</li>
+    <li><strong>Physics-based Motion:</strong> Compose <code>spring()</code> physics for natural ball bounce and card press micro-interactions.</li>
+  </ul>
+</body>
+</html>

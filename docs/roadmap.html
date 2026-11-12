@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Roadmap - Lotto24 Case Study</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #fff; color: #0f172a; padding: 32px; line-height: 1.6; }
+    h1 { font-size: 26px; font-weight: 800; margin-bottom: 8px; color: #0f172a; }
+    p { font-size: 14px; color: #334155; }
+    .phase-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px 20px; margin: 16px 0; background: #fff; }
+    .phase-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .phase-title { font-size: 15px; font-weight: 700; color: #0f172a; }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+    .pill-progress { background-color: #dbeafe; color: #1e40af; }
+    .pill-pending { background-color: #f1f5f9; color: #475569; }
+    .pill-done { background-color: #dcfce7; color: #166534; }
+    .checklist-item { display: flex; align-items: center; gap: 8px; font-size: 13.5px; margin: 6px 0; color: #334155; }
+  </style>
+</head>
+<body>
+  <h1>Micro-Phases Execution Roadmap</h1>
+  <p>Trackable implementation progress with automated verification and atomic commits.</p>
+
+  <div class="phase-card">
+    <div class="phase-header">
+      <span class="phase-title">Phase 1: Foundation & Version Catalog Setup</span>
+      <span class="pill pill-progress">In Progress</span>
+    </div>
+    <div class="checklist-item">✓ Official Android skills installed (<code>.agents/skills/</code>: jetpack-compose, navigation-3, r8-analyzer, testing-setup)</div>
+    <div class="checklist-item">✓ KMP & AndroidApp project template verified</div>
+    <div class="checklist-item">⏳ Centralized dependencies in <code>libs.versions.toml</code> (Koin, Ktor, Serialization, DateTime, Glance)</div>
+    <div class="checklist-item">⏳ Git repository initialization & initial clean build verification</div>
+  </div>
+
+  <div class="phase-card">
+    <div class="phase-header">
+      <span class="phase-title">Phase 2: Domain Layer & Polymorphic Models</span>
+      <span class="pill pill-pending">Pending</span>
+    </div>
+    <div class="checklist-item">○ Pure Kotlin models: <code>LotteryDraw</code> (Lotto6aus49 vs Eurojackpot), <code>Jackpot</code>, <code>BallItem</code></div>
+    <div class="checklist-item">○ Domain repository contract: <code>LotteryRepository</code></div>
+    <div class="checklist-item">○ Domain use cases: <code>GetLotteryResultsUseCase</code></div>
+  </div>
+
+  <div class="phase-card">
+    <div class="phase-header">
+      <span class="phase-title">Phase 3: Data Layer, Ktor Client & Resilient Mappers</span>
+      <span class="pill pill-pending">Pending</span>
+    </div>
+    <div class="checklist-item">○ Ktor HTTP client configuration with ContentNegotiation</div>
+    <div class="checklist-item">○ DTO definitions for Lotto24 drawinfo endpoint</div>
+    <div class="checklist-item">○ Resilient mapping logic with defensive null handling</div>
+  </div>
+
+  <div class="phase-card">
+    <div class="phase-header">
+      <span class="phase-title">Phase 4: Formatters (Currency & DateTime) + Unit Tests</span>
+      <span class="pill pill-pending">Pending</span>
+    </div>
+    <div class="checklist-item">○ <code>CurrencyFormatter</code> (80000000.00 EUR -> 80 MIO €)</div>
+    <div class="checklist-item">○ <code>DateTimeFormatter</code> (German localized weekdays: Fr., 18.09.2020)</div>
+    <div class="checklist-item">○ 100% unit test coverage for formatters</div>
+  </div>
+
+  <div class="phase-card">
+    <div class="phase-header">
+      <span class="phase-title">Phase 5: Offline-First Repository & Cache</span>
+      <span class="pill pill-pending">Pending</span>
+    </div>
+    <div class="checklist-item">○ <code>LotteryLocalDataSource</code> cache abstraction and implementation</div>
+    <div class="checklist-item">○ Offline-first <code>LotteryRepositoryImpl</code></div>
+    <div class="checklist-item">○ Unit tests with Ktor <code>MockEngine</code> for online/offline/failure states</div>
+  </div>
+
+  <div class="phase-card">
+    <div class="phase-header">
+      <span class="phase-title">Phase 6: ViewModel & Unidirectional Data Flow</span>
+      <span class="pill pill-pending">Pending</span>
+    </div>
+    <div class="checklist-item">○ <code>DrawResultsUiState</code> with <code>ImmutableList</code> for stability</div>
+    <div class="checklist-item">○ <code>DrawResultsViewModel</code> with <code>StateFlow</code> and pull-to-refresh</div>
+    <div class="checklist-item">○ ViewModel testing with <strong>Turbine</strong> and Coroutines Test</div>
+  </div>
+
+  <div class="phase-card">
+    <div class="phase-header">
+      <span class="phase-title">Phase 7: Atomic CMP UI Components & Previews</span>
+      <span class="pill pill-pending">Pending</span>
+    </div>
+    <div class="checklist-item">○ <code>LotteryBall</code> (Regular, Superzahl, Eurozahlen visual variants)</div>
+    <div class="checklist-item">○ <code>JackpotBadge</code> and <code>NextDrawBadge</code></div>
+    <div class="checklist-item">○ <code>LotteryCard</code> with TalkBack accessibility semantics</div>
+    <div class="checklist-item">○ <code>@Preview</code> for every single UI component</div>
+  </div>
+
+  <div class="phase-card">
+    <div class="phase-header">
+      <span class="phase-title">Phase 8: Main Screen & Physics-based Animations</span>
+      <span class="pill pill-pending">Pending</span>
+    </div>
+    <div class="checklist-item">○ Spring physics animations for ball bounce and press interactions</div>
+    <div class="checklist-item">○ Pull-to-refresh and Shimmer loading skeleton</div>
+    <div class="checklist-item">○ Offline banner when viewing cached data</div>
+  </div>
+
+  <div class="phase-card">
+    <div class="phase-header">
+      <span class="phase-title">Phase 9: Bonus Features (Glance Widget & External Links)</span>
+      <span class="pill pill-pending">Pending</span>
+    </div>
+    <div class="checklist-item">○ <code>ExternalNavigator</code> intent router for web and Play Store</div>
+    <div class="checklist-item">○ Jetpack Glance AppWidget in <code>:androidApp</code></div>
+  </div>
+
+  <div class="phase-card">
+    <div class="phase-header">
+      <span class="phase-title">Phase 10: Screenshot Testing, Polishing & Documentation</span>
+      <span class="pill pill-pending">Pending</span>
+    </div>
+    <div class="checklist-item">○ ComposablePreviewScanner integration</div>
+    <div class="checklist-item">○ Comprehensive <code>README.md</code></div>
+    <div class="checklist-item">○ Final build verification</div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lotto24 Android Case Study - Technical Documentation</title>
+  <style>
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f8fafc;
+      --bg-tertiary: #f1f5f9;
+      --border-color: #e2e8f0;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --accent: #dc2626; /* Lotto24 Brand Red */
+      --accent-hover: #b91c1c;
+      --accent-light: #fef2f2;
+      --brand-yellow: #f59e0b;
+      --brand-yellow-light: #fef3c7;
+      --success: #16a34a;
+      --success-light: #dcfce7;
+      --info: #2563eb;
+      --info-light: #dbeafe;
+      --sidebar-width: 290px;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Navigation */
+    #sidebar {
+      width: var(--sidebar-width);
+      background-color: var(--bg-secondary);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 100;
+    }
+
+    .sidebar-header {
+      padding: 24px 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-badge {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      color: white;
+      font-weight: 800;
+      font-size: 15px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 4px rgba(220, 38, 38, 0.25);
+    }
+
+    .brand-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.2px;
+    }
+
+    .brand-subtitle {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .nav-list {
+      list-style: none;
+      padding: 18px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .nav-item button {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: transparent;
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.15s ease-in-out;
+    }
+
+    .nav-item button:hover {
+      background-color: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .nav-item button.active {
+      background-color: var(--accent-light);
+      color: var(--accent);
+      border-color: #fecaca;
+      font-weight: 600;
+    }
+
+    .nav-item .icon {
+      font-size: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border-color);
+      font-size: 12px;
+      color: var(--text-muted);
+      background-color: var(--bg-secondary);
+    }
+
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background-color: var(--brand-yellow-light);
+      color: #92400e;
+    }
+
+    .badge-pulse {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--brand-yellow);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.9); opacity: 0.8; }
+      50% { transform: scale(1.4); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.8; }
+    }
+
+    /* Main Content Area */
+    #main-content {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 40px 50px;
+      max-width: 1100px;
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Typography & Components */
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+
+    .page-lead {
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-bottom: 30px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 16px;
+    }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 28px 0 14px 0;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 20px 0 10px 0;
+      color: var(--text-primary);
+    }
+
+    p, li {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    ul, ol {
+      padding-left: 20px;
+      margin-bottom: 16px;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    .card {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    .card-highlight {
+      border-left: 4px solid var(--accent);
+      background-color: var(--bg-secondary);
+    }
+
+    .card-info {
+      border-left: 4px solid var(--info);
+      background-color: #f8fafc;
+    }
+
+    /* Table Styles */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px 0;
+      font-size: 13px;
+    }
+
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 10px 14px;
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--bg-secondary);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    tr:hover {
+      background-color: var(--bg-secondary);
+    }
+
+    /* Code blocks */
+    pre {
+      background-color: #0f172a;
+      color: #f8fafc;
+      padding: 16px 20px;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      overflow-x: auto;
+      margin: 14px 0;
+      line-height: 1.5;
+    }
+
+    code {
+      font-family: var(--font-mono);
+      background-color: var(--bg-tertiary);
+      color: var(--accent);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12.5px;
+    }
+
+    pre code {
+      background-color: transparent;
+      color: inherit;
+      padding: 0;
+    }
+
+    /* Badges */
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .pill-must { background-color: #fee2e2; color: #991b1b; }
+    .pill-bonus { background-color: #fef3c7; color: #92400e; }
+    .pill-done { background-color: #dcfce7; color: #166534; }
+    .pill-progress { background-color: #dbeafe; color: #1e40af; }
+    .pill-pending { background-color: #f1f5f9; color: #475569; }
+
+    /* Interactive Phase Checklist */
+    .phase-card {
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 18px 20px;
+      margin-bottom: 14px;
+      background-color: var(--bg-primary);
+      transition: border-color 0.15s;
+    }
+
+    .phase-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .phase-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .checklist-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13.5px;
+      margin: 6px 0;
+      color: var(--text-secondary);
+    }
+
+    .checklist-item input[type="checkbox"] {
+      margin-top: 3px;
+      accent-color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Left Sidebar -->
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand-badge">24</div>
+      <div>
+        <div class="brand-title">Lotto24 Case Study</div>
+        <div class="brand-subtitle">(CMP)</div>
+      </div>
+    </div>
+
+    <ul class="nav-list">
+      <li class="nav-item">
+        <button class="active" onclick="showTab('requirements')">
+          <span class="icon">📋</span> Requirements & Scope
+        </button>
+      </li>
+      <li class="nav-item">
+        <button onclick="showTab('techstack')">
+          <span class="icon">⚙️</span> Tech Stack & Modules
+        </button>
+      </li>
+      <li class="nav-item">
+        <button onclick="showTab('roadmap')">
+          <span class="icon">🗺️</span> Micro-Phases Roadmap
+        </button>
+      </li>
+      <li class="nav-item">
+        <button onclick="showTab('ui-spec')">
+          <span class="icon">🎨</span> UI & Animation Specs
+        </button>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <div class="badge-status">
+        <span class="badge-pulse"></span>
+        <span>Phase 1 In Progress</span>
+      </div>
+      <div style="margin-top: 6px; font-size: 11px;">Target: Production Grade</div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main id="main-content">
+
+    <!-- TAB 1: REQUIREMENTS -->
+    <section id="requirements" class="tab-content active">
+      <h1>CASE STUDY</h1>
+      <p style="margin-bottom: 16px;">Dear candidate!</p>
+      <p style="margin-bottom: 16px;">The case study consists of a coding challenge that needs to be solved to showcase your technical abilities. It must contain the source code and resources necessary to build and run the application on a developer’s machine.</p>
+      <p style="margin-bottom: 16px;">Therefore, please provide a repository (zip file, link to GitHub, ...) containing all files and assets to build and run the project. Providing the case study with a source code management history that lets reviewers follow the development and thought process made during development is a plus.</p>
+      <p style="margin-bottom: 16px;">The case study should also come with a small suite of tests to prove and ensure the stability of the features being built.</p>
+      <p style="margin-bottom: 16px;">Of course, we know that Claude can solve this challenge. The case study should not be worked on longer than a few hours. If any feature is not finished do not worry. Showcase your strengths and select the areas you are most comfortable with. It’s a base to pair with other developers, a starting point for a discussion.</p>
+
+      <h2>Introduction</h2>
+      <p>In Germany there are two major draw-based lotteries:</p>
+      <ul>
+        <li><strong>Lotto 6aus49:</strong> In this lottery, players select six numbers from a pool of 49 and an additional "Super Number" between 0 and 9. There is a draw where drawn numbers are compared to picked numbers. The prize depends on how many numbers match the drawn winning numbers.</li>
+        <li><strong>Eurojackpot:</strong> Players choose five numbers from a pool of 50 and two "Euro Numbers" from a separate pool of 12. To win the jackpot, all seven numbers must be correct.</li>
+        <li><strong>Supplementary lotteries:</strong> These are optional lottery games, such as Spiel 77 or Super 6, which can be played alongside the main lottery and offer additional chances to win.</li>
+      </ul>
+
+      <p>Each lottery draw has</p>
+      <ul>
+        <li>A last draw date with draw results (which numbers were drawn on this draw date)</li>
+        <li>Next draw date in the future (in which players can participate)</li>
+        <li>Maybe a jackpot height (directly after a draw it is not there, because it is not known if a player has picked the right numbers, yet)</li>
+      </ul>
+
+      <h2>User Story</h2>
+      <div class="card" style="background: #f8fafc;">
+        <p><strong>As a user I want</strong></p>
+        <ul>
+          <li>To install an app on my Android device which is small and just displays the results of my favorite lotteries</li>
+          <li>The last draw results for LOTTO 6aus49 and Eurojackpot</li>
+          <li>The jackpot heights (if there are any)</li>
+          <li>and the next draw date(s) to be visible in a "draw results" screen or (bonus) a draw result widget</li>
+        </ul>
+        <p style="margin-bottom: 0;">so, I can decide if I want to participate in the next draw.</p>
+      </div>
+
+      <h2>Features to be implemented.</h2>
+
+      <h3>Must have:</h3>
+      <ul>
+        <li>Actual numbers are displayed in a ball</li>
+        <li>Next draw date is displayed</li>
+        <li>The jackpot heights are displayed (if applicable)</li>
+        <li>Jetpack Compose should be used as a framework</li>
+      </ul>
+
+      <h3>Bonus:</h3>
+      <ul>
+        <li>There is also a widget</li>
+        <li>If you click anywhere, it will open a link to our website or to our native app’s Play Store page</li>
+        <li>Spiel77 and SUPER6 are also displayed.</li>
+      </ul>
+
+      <h2>UX/UI</h2>
+      <p>You can take this sample UI as reference for your screen and widget (from IOS app):</p>
+      <p style="font-style: italic; color: #475569; margin: 12px 0;">Please note the visual difference between “Superzahl” and “Eurozahlen”.</p>
+
+      <h2>API</h2>
+      <p>You can get the draw results from the (legacy) drawinfo API (<a href="https://www.lotto24.de/public/drawinfo" target="_blank" style="color: #2563eb;">https://www.lotto24.de/public/drawinfo</a>):</p>
+      <p><code>GET https://www.lotto24.de/public/v1/drawinfo/aggregated/6aus49,eurojackpot</code></p>
+
+      <pre><code>[
+ {
+ "lottery": "6aus49",
+ "lastDraw": {
+ "drawIdentifier": "2023-01-21",
+ "lottery": "6aus49",
+ "drawDate": "2023-01-21T19:25:00+01:00",
+ "drawDateUtc": "2023-01-21T18:25:00Z",
+ "drawResult": {
+ "numbers": [
+ 4,
+ 19,
+ 24,
+ 43,
+ 44,
+ 45
+ ],
+ "superNumber": 7
+ },
+ "quotas": {
+ "WC_1": "5029008.30",
+ "WC_2": "769100.10",
+ "WC_3": "13112.50",
+ "WC_4": "5418.60",
+ "WC_5": "169.00",
+ "WC_6": "56.30",
+ "WC_7": "17.30",
+ "WC_8": "11.80",
+ "WC_9": "6.00"
+ },
+ "nonMonetaryQuotas": {},
+ "winners": {
+ "WC_1": 0,
+ "WC_2": 3,
+ "WC_3": 61,
+ "WC_4": 440,
+ "WC_5": 3913,
+ "WC_6": 27821,
+ "WC_7": 77269,
+ "WC_8": 533367,
+ "WC_9": 603493
+ },
+ "totalStake": "44712847.20",
+ "currency": "EUR"
+ },
+ "nextDraw": {
+ "drawIdentifier": "2023-01-25",
+ "lottery": "6aus49",
+ "drawDate": "2023-01-25T18:25:00+01:00",
+ "drawDateUtc": "2023-01-25T17:25:00Z",
+ "timeZone": "Europe/Berlin",
+ "cutofftime": "2023-01-25T17:45:00+01:00",
+ "jackpot": {
+ "drawIdentifier": "2023-01-25",
+ "lottery": "6aus49",
+ "drawDate": "2023-01-25T18:25:00+01:00",
+ "currency": "EUR",
+ "jackpots": {
+ "WC_1": "6000000.00",
+ "WC_2": "1000000.00"
+ },
+ "jackpotSupported": true
+ }
+ },
+ "draws": []
+ },
+ {
+ "lottery": "eurojackpot",
+ "lastDraw": {
+ "drawIdentifier": "2023-01-20",
+ "lottery": "eurojackpot",
+ "drawDate": "2023-01-20T20:00:00+02:00",
+ "drawDateUtc": "2023-01-20T18:00:00Z",
+ "drawResult": {
+ "numbers": [
+ 1,
+ 12,
+ 15,
+ 31,
+ 47
+ ],
+ "euroNumbers": [
+ 9,
+ 10
+ ]
+ },
+ "quotas": {
+ "WC_1": "0.00",
+ "WC_2": "906735.60",
+ "WC_3": "263552.60",
+ "WC_4": "8050.40",
+ "WC_5": "356.00",
+ "WC_6": "192.60",
+ "WC_7": "128.80",
+ "WC_8": "29.40",
+ "WC_9": "21.90",
+ "WC_10": "18.10",
+ "WC_11": "14.40",
+ "WC_12": "10.40"
+ },
+ "nonMonetaryQuotas": {},
+ "winners": {
+ "WC_1": 0,
+ "WC_2": 4,
+ "WC_3": 5,
+ "WC_4": 27,
+ "WC_5": 763,
+ "WC_6": 1551,
+ "WC_7": 1687,
+ "WC_8": 23518,
+ "WC_9": 35240,
+ "WC_10": 80763,
+ "WC_11": 126511,
+ "WC_12": 527464
+ },
+ "totalStake": "54340762.00",
+ "currency": "EUR"
+ },
+ "nextDraw": {
+ "drawIdentifier": "2023-01-24",
+ "lottery": "eurojackpot",
+ "drawDate": "2023-01-24T20:00:00+02:00",
+ "drawDateUtc": "2023-01-24T18:00:00Z",
+ "timeZone": "Europe/Helsinki",
+ "cutofftime": "2023-01-24T19:35:00+02:00",
+ "jackpot": {
+ "drawIdentifier": "2023-01-24",
+ "lottery": "eurojackpot",
+ "drawDate": "2023-01-24T20:00:00+02:00",
+ "currency": "EUR",
+ "jackpots": {
+ "WC_1": "80000000.00",
+ "WC_2": "1000000.00"
+ },
+ "jackpotSupported": true
+ }
+ },
+ "draws": []
+ }
+]</code></pre>
+      <p style="font-style: italic; color: #475569; margin: 12px 0;">Please note the difference between numbers, superNumber and euroNumbers.</p>
+      <p><strong>Have fun!</strong></p>
+    </section>
+
+    <!-- TAB 2: TECH STACK & MODULES -->
+    <section id="techstack" class="tab-content">
+      <h1>Tech Stack & Architecture</h1>
+      <p class="page-lead">Modular boundaries, library selections, architectural patterns, and trade-off rationales.</p>
+
+      <h2>1. Modular Project Architecture</h2>
+      <div class="card card-info">
+        <h3>AGP 8.5+ & Modern KMP Modular Structure</h3>
+        <p>The project follows the official decoupled structure recommended for modern Compose Multiplatform apps:</p>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Module</th>
+            <th>Type</th>
+            <th>Responsibilities</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>:androidApp</code></td>
+            <td><code>com.android.application</code></td>
+            <td>Android application entry point (<code>MainActivity</code>), Android Manifest, application launcher icons, and <strong>Jetpack Glance AppWidget</strong>.</td>
+          </tr>
+          <tr>
+            <td><code>:shared</code></td>
+            <td><code>com.android.kotlin.multiplatform.library</code></td>
+            <td>Houses 100% of multiplatform business logic, Ktor HTTP client, domain models, Koin DI graph, and CMP Compose UI screens & design components in <code>commonMain</code>.</td>
+          </tr>
+          <tr>
+            <td><code>:iosApp</code></td>
+            <td>Xcode Project</td>
+            <td>Native iOS wrapper rendering the shared Compose UI via UIViewController bridge.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>2. Package-by-Layer Architecture (Inside <code>:shared</code>)</h2>
+      <pre><code>shared/src/commonMain/kotlin/de/lotto24case/
+├── domain/                    <-- Zero external framework dependencies (Pure Kotlin)
+│   ├── model/                 <-- Sealed LotteryDraw, Jackpot, BallItem, GameRules
+│   ├── repository/            <-- LotteryRepository interface
+│   └── usecase/               <-- GetLotteryResultsUseCase, FormatJackpotUseCase
+│
+├── data/                      <-- Implements domain contracts
+│   ├── remote/                <-- Ktor HTTP client, ApiService, DTOs
+│   ├── local/                 <-- CacheDataSource (Offline fallback)
+│   ├── mapper/                <-- DTO -> Domain mappers
+│   └── repository/            <-- LotteryRepositoryImpl
+│
+├── presentation/              <-- UI Layer (Compose Multiplatform)
+│   ├── components/            <-- LotteryBall, JackpotBadge, NextDrawBadge, LotteryCard
+│   ├── screen/                <-- DrawResultsScreen, DrawResultsUiState
+│   ├── viewmodel/             <-- DrawResultsViewModel (MVI / UDF)
+│   └── theme/                 <-- Typography, Colors, Dimens, Shape
+│
+├── di/                        <-- Koin modules (NetworkModule, DataModule, DomainModule, UiModule)
+└── navigation/                <-- ExternalNavigator abstraction (Web & PlayStore intents)</code></pre>
+
+      <h2>3. Technology Choices & Architectural Trade-offs</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Technology</th>
+            <th>Role</th>
+            <th>Why Chosen & Trade-off Consideration</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Koin 4.0</strong></td>
+            <td>Dependency Injection</td>
+            <td>Native KMP support, official Compose Multiplatform viewmodel injection (<code>koinViewModel()</code>), zero reflection or KSP build-overhead. Hilt was ruled out as it cannot target multiplatform iOS.</td>
+          </tr>
+          <tr>
+            <td><strong>Ktor 3.0</strong></td>
+            <td>HTTP Client</td>
+            <td>Modern coroutines-native KMP networking with <code>ContentNegotiation</code> and <code>MockEngine</code> for unit testing without live servers.</td>
+          </tr>
+          <tr>
+            <td><strong>kotlinx.serialization</strong></td>
+            <td>JSON Serialization</td>
+            <td>Fast compile-time generated serializers. Tolerates missing fields and heterogeneous structures cleanly.</td>
+          </tr>
+          <tr>
+            <td><strong>kotlinx-datetime</strong></td>
+            <td>Timezone & Dates</td>
+            <td>Strict ISO-8601 parsing and accurate timezone conversions between Berlin and Helsinki draw locations.</td>
+          </tr>
+          <tr>
+            <td><strong>kotlinx.collections.immutable</strong></td>
+            <td>Compose Recomposition</td>
+            <td>Ensures lists of numbers, balls, and cards are marked <code>@Immutable</code> by the Compose compiler, preventing skippable recomposition penalties.</td>
+          </tr>
+          <tr>
+            <td><strong>Jetpack Glance 1.1</strong></td>
+            <td>Android App Widget</td>
+            <td>Modern declarative Compose syntax for Android AppWidgets, residing cleanly in <code>:androidApp</code>.</td>
+          </tr>
+          <tr>
+            <td><strong>ComposablePreviewScanner</strong></td>
+            <td>Screenshot Testing</td>
+            <td>Automated test scanning of all <code>@Preview</code> composables to guarantee visual regression safety.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- TAB 3: MICRO-PHASES ROADMAP -->
+    <section id="roadmap" class="tab-content">
+      <h1>Micro-Phases Execution Roadmap</h1>
+      <p class="page-lead">Granular, verifiable milestones. Each step includes automated verification and atomic Git commit discipline.</p>
+
+      <div class="phase-card">
+        <div class="phase-header">
+          <span class="phase-title">Phase 1: Foundation & Version Catalog Setup</span>
+          <span class="pill pill-progress">In Progress</span>
+        </div>
+        <p>Installing official Android skills, configuring centralized dependencies in <code>libs.versions.toml</code>, establishing Koin, Ktor, Serialization, DateTime, Glance, and ComposablePreviewScanner.</p>
+        <div class="checklist-item">
+          <input type="checkbox" checked disabled> Official Android skills installed (<code>.agents/skills/</code>: jetpack-compose, navigation-3, r8-analyzer, testing-setup)
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox" checked disabled> Project structure verified (<code>:androidApp</code>, <code>:shared</code>)
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox" id="p1-toml"> Add Koin, Ktor, kotlinx-serialization, kotlinx-datetime to <code>libs.versions.toml</code>
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox" id="p1-git"> Initialize Git repository and verify clean initial build
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-header">
+          <span class="phase-title">Phase 2: Domain Layer & Polymorphic Models</span>
+          <span class="pill pill-pending">Pending</span>
+        </div>
+        <p>Designing pure Kotlin domain entities with zero external dependencies. Modeling the fundamental asymmetry between 6aus49 (Superzahl) and Eurojackpot (Eurozahlen).</p>
+        <div class="checklist-item">
+          <input type="checkbox"> Define <code>LotteryType</code> (LOTTO_6AUS49, EUROJACKPOT)
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox"> Define <code>sealed interface LotteryDraw</code> with concrete implementations
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox"> Define <code>Jackpot</code>, <code>SupplementaryLottery</code> (Spiel 77, Super 6)
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox"> Define <code>LotteryRepository</code> interface and <code>GetLotteryResultsUseCase</code>
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-header">
+          <span class="phase-title">Phase 3: Data Layer, Ktor Client & Resilient Mappers</span>
+          <span class="pill pill-pending">Pending</span>
+        </div>
+        <p>Ktor API client, DTOs matching Lotto24 schema, resilient null-safe parsing, and pure domain mappers.</p>
+        <div class="checklist-item">
+          <input type="checkbox"> Create <code>LotteryResponseDto</code>, <code>LastDrawDto</code>, <code>NextDrawDto</code>
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox"> Implement <code>Lotto24ApiService</code> with Ktor HTTP client
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox"> Implement DTO to Domain Mapper with defensive fallback logic
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-header">
+          <span class="phase-title">Phase 4: Formatters (Currency & DateTime) + Unit Tests</span>
+          <span class="pill pill-pending">Pending</span>
+        </div>
+        <p>Solid formatting utilities for German lottery presentation with 100% unit test coverage.</p>
+        <div class="checklist-item">
+          <input type="checkbox"> <code>CurrencyFormatter</code>: <code>80000000.00 EUR</code> -> <code>80 MIO €</code>
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox"> <code>DateTimeFormatter</code>: ISO-8601 -> German weekday format (e.g. <code>Fr., 18.09.2020</code>)
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox"> Comprehensive unit tests covering edge cases (0.00, null jackpot, midnight timezones)
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-header">
+          <span class="phase-title">Phase 5: Offline-First Repository & Cache</span>
+          <span class="pill pill-pending">Pending</span>
+        </div>
+        <p>Graceful offline experience. Network-first with local cache fallback and connection status indicators.</p>
+        <div class="checklist-item">
+          <input type="checkbox"> Implement <code>LotteryLocalDataSource</code> (Lightweight persistent storage)
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox"> Implement <code>LotteryRepositoryImpl</code> with cache fallback
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox"> Unit tests with Ktor <code>MockEngine</code> for online/offline/error scenarios
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-header">
+          <span class="phase-title">Phase 6: ViewModel & Unidirectional Data Flow (UDF)</span>
+          <span class="pill pill-pending">Pending</span>
+        </div>
+        <p>Reactive state management using <code>StateFlow</code> and immutable UI state.</p>
+        <div class="checklist-item">
+          <input type="checkbox"> Define <code>DrawResultsUiState</code> (Loading, Success, Error, IsOffline)
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox"> Implement <code>DrawResultsViewModel</code> with pull-to-refresh
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox"> ViewModel unit tests using <strong>Turbine</strong> and Coroutines Test
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-header">
+          <span class="phase-title">Phase 7: Atomic CMP UI Components & Previews</span>
+          <span class="pill pill-pending">Pending</span>
+        </div>
+        <p>Reusable design system elements with mandatory <code>@Preview</code> for every component.</p>
+        <div class="checklist-item">
+          <input type="checkbox"> <code>LotteryBall</code> (Standard white ball, Superzahl accent, Eurozahlen accent)
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox"> <code>JackpotBadge</code> (Vertical MIO card) & <code>NextDrawBadge</code> (Pill)
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox"> <code>LotteryCard</code> (Interactive card with a11y semantics)
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox"> Previews for all components with light/dark variants
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-header">
+          <span class="phase-title">Phase 8: Main Screen & Physics-based Animations</span>
+          <span class="pill pill-pending">Pending</span>
+        </div>
+        <p>Full screen composition with spring physics, bounce animations for balls, and pull-to-refresh.</p>
+        <div class="checklist-item">
+          <input type="checkbox"> Physics-based ball drop/bounce entrance (<code>Animatable</code> spring)
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox"> Pull-to-refresh & Shimmer loading skeleton
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox"> Offline banner warning if displaying cached data
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-header">
+          <span class="phase-title">Phase 9: Bonus Tasks (Glance Widget & External Links)</span>
+          <span class="pill pill-pending">Pending</span>
+        </div>
+        <p>Android AppWidget built with Jetpack Glance and intent-based navigation router.</p>
+        <div class="checklist-item">
+          <input type="checkbox"> <code>ExternalNavigator</code> implementation for Lotto24 website & Play Store
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox"> <code>DrawResultsWidget</code> (Glance AppWidget in <code>:androidApp</code>)
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox"> Widget layout matching mockup with direct click-to-open actions
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-header">
+          <span class="phase-title">Phase 10: Screenshot Testing, Polishing & Documentation</span>
+          <span class="pill pill-pending">Pending</span>
+        </div>
+        <p>Automated preview scanner tests, README documentation, and final review check.</p>
+        <div class="checklist-item">
+          <input type="checkbox"> Integrate <code>ComposablePreviewScanner</code> for automated screenshot testing
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox"> Comprehensive <code>README.md</code> with architecture diagrams & pairing discussion points
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox"> Final build & test verification across all modules
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: UI & ANIMATION SPECS -->
+    <section id="ui-spec" class="tab-content">
+      <h1>UI & Physics Animation Specifications</h1>
+      <p class="page-lead">Visual design details, ball differentiation rules, and physics spring specifications.</p>
+
+      <h2>1. Visual Ball Distinction (PDF Requirement)</h2>
+      <div class="card">
+        <p><em>"Please note the visual difference between 'Superzahl' and 'Eurozahlen'."</em></p>
+        <table>
+          <thead>
+            <tr>
+              <th>Ball Category</th>
+              <th>Border / Fill</th>
+              <th>Typography</th>
+              <th>TalkBack / Semantics</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Regular Balls</strong> (1-49 / 1-50)</td>
+              <td>White background, clean 1.5dp slate border (<code>#CBD5E1</code>), subtle elevation shadow.</td>
+              <td>Bold Sans, Dark Slate (<code>#1E293B</code>).</td>
+              <td><code>"Gewinnzahl [X]"</code></td>
+            </tr>
+            <tr>
+              <td><strong>Superzahl</strong> (6aus49: 0-9)</td>
+              <td>Distinct red/rose border (<code>#DC2626</code>) with very subtle light rose gradient fill.</td>
+              <td>Bold Sans, Deep Red (<code>#991B1B</code>).</td>
+              <td><code>"Superzahl [X]"</code></td>
+            </tr>
+            <tr>
+              <td><strong>Eurozahlen</strong> (Eurojackpot: 1-12)</td>
+              <td>Distinct warm amber/gold border (<code>#D97706</code>) with soft golden fill.</td>
+              <td>Bold Sans, Warm Amber (<code>#92400E</code>).</td>
+              <td><code>"Eurozahl [X]"</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>2. Physics-Based Animations (Spring Dynamics)</h2>
+      <div class="card card-highlight">
+        <h3>Spring Physics Parameters</h3>
+        <p>Instead of generic linear or tween animations, Compose <code>spring()</code> physics will be used:</p>
+        <ul>
+          <li><strong>Ball Drop & Entrance:</strong> Staggered entrance using <code>Spring.DampingRatioMediumBouncy</code> (0.75f) and <code>Spring.StiffnessLow</code> (200f) to mimic real lottery balls bouncing into position.</li>
+          <li><strong>Card Press Feedback:</strong> <code>graphicsLayer { scaleX = animatedScale; scaleY = animatedScale }</code> using <code>Spring.DampingRatioHighBouncy</code> for tactile button clicks.</li>
+          <li><strong>Jackpot MIO Pulse:</strong> Subtle breathing/pulsing animation highlighting high jackpot stakes (> 10 MIO €).</li>
+        </ul>
+      </div>
+
+      <h2>3. Preview Mandate & Screenshot Tests</h2>
+      <p>Every single UI Composable must include:</p>
+      <ul>
+        <li><code>@Preview</code> with typical state.</li>
+        <li><code>@Preview</code> with edge-case state (e.g. 2-digit numbers, null jackpot, long German date strings).</li>
+        <li>Automated detection via <strong>ComposablePreviewScanner</strong> to guarantee zero undetected UI regressions.</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <script>
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item button').forEach(el => el.classList.remove('active'));
+      
+      const target = document.getElementById(tabId);
+      if (target) {
+        target.classList.add('active');
+      }
+      
+      const activeBtn = Array.from(document.querySelectorAll('.nav-item button'))
+        .find(btn => btn.getAttribute('onclick').includes(tabId));
+      if (activeBtn) {
+        activeBtn.classList.add('active');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>
