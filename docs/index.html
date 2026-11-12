@@ -405,11 +405,11 @@
     </ul>
 
     <div class="sidebar-footer">
-      <div class="badge-status">
-        <span class="badge-pulse"></span>
-        <span>Phase 1 In Progress</span>
+      <div class="badge-status" style="background-color: var(--success-light); color: var(--success);">
+        <span class="badge-pulse" style="background-color: var(--success);"></span>
+        <span>Phase 1 Completed</span>
       </div>
-      <div style="margin-top: 6px; font-size: 11px;">Target: Production Grade</div>
+      <div style="margin-top: 6px; font-size: 11px;">Next: Phase 2 Domain Layer</div>
     </div>
   </aside>
 
@@ -738,7 +738,7 @@
       <div class="phase-card">
         <div class="phase-header">
           <span class="phase-title">Phase 1: Foundation & Version Catalog Setup</span>
-          <span class="pill pill-progress">In Progress</span>
+          <span class="pill pill-done">Completed</span>
         </div>
         <p>Installing official Android skills, configuring centralized dependencies in <code>libs.versions.toml</code>, establishing Koin, Ktor, Serialization, DateTime, Glance, and ComposablePreviewScanner.</p>
         <div class="checklist-item">
@@ -748,10 +748,10 @@
           <input type="checkbox" checked disabled> Project structure verified (<code>:androidApp</code>, <code>:shared</code>)
         </div>
         <div class="checklist-item">
-          <input type="checkbox" id="p1-toml"> Add Koin, Ktor, kotlinx-serialization, kotlinx-datetime to <code>libs.versions.toml</code>
+          <input type="checkbox" checked disabled> Add Koin 4.0, Ktor 3.1, kotlinx-serialization, kotlinx-datetime, Glance, ComposablePreviewScanner to <code>libs.versions.toml</code>
         </div>
         <div class="checklist-item">
-          <input type="checkbox" id="p1-git"> Initialize Git repository and verify clean initial build
+          <input type="checkbox" checked disabled> Verified clean build (<code>assembleDebug</code>: 59 actionable tasks executed successfully)
         </div>
       </div>
 
