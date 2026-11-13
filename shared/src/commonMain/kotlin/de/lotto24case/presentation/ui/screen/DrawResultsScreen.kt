@@ -1,7 +1,6 @@
 package de.lotto24case.presentation.ui.screen
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,7 +34,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -44,8 +42,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.lotto24case.presentation.model.LotteryCardUiModel
 import de.lotto24case.presentation.state.DrawResultsUiState
-import de.lotto24case.presentation.theme.AuraColors
 import de.lotto24case.presentation.theme.AuraSpacing
+import de.lotto24case.presentation.theme.AuraTheme
 import de.lotto24case.presentation.theme.AuraTypography
 import de.lotto24case.presentation.ui.component.LotteryCard
 import de.lotto24case.presentation.viewmodel.DrawResultsViewModel
@@ -63,8 +61,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun DrawResultsRoute(
     modifier: Modifier = Modifier,
-    onCardClick: ((LotteryCardUiModel) -> Unit)? = null,
-    isDark: Boolean = isSystemInDarkTheme()
+    onCardClick: ((LotteryCardUiModel) -> Unit)? = null
 ) {
     val viewModel: DrawResultsViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -89,8 +86,7 @@ fun DrawResultsRoute(
         onRetry = viewModel::onRetryClicked,
         onLoadFixture = viewModel::onLoadFixtureClicked,
         onCardClick = defaultCardClickHandler,
-        modifier = modifier,
-        isDark = isDark
+        modifier = modifier
     )
 }
 
@@ -108,8 +104,7 @@ fun DrawResultsScreen(
     onRetry: () -> Unit,
     onLoadFixture: () -> Unit,
     onCardClick: (LotteryCardUiModel) -> Unit,
-    modifier: Modifier = Modifier,
-    isDark: Boolean = isSystemInDarkTheme()
+    modifier: Modifier = Modifier
 ) {
     DrawResultsContent(
         uiState = uiState,
@@ -117,8 +112,7 @@ fun DrawResultsScreen(
         onRetry = onRetry,
         onLoadFixture = onLoadFixture,
         onCardClick = onCardClick,
-        modifier = modifier,
-        isDark = isDark
+        modifier = modifier
     )
 }
 
@@ -127,7 +121,9 @@ fun DrawResultsScreen(
  * - Clean white top bar with "img Aura Lotto" branding.
  * - Luminous background (#F8FAFC).
  * - Pull-to-refresh on both success and error states.
+ * - Colors resolved semantically via [AuraTheme.colors].
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DrawResultsContent(
     uiState: DrawResultsUiState,
@@ -135,15 +131,13 @@ fun DrawResultsContent(
     onRetry: () -> Unit,
     onLoadFixture: () -> Unit,
     onCardClick: (LotteryCardUiModel) -> Unit,
-    modifier: Modifier = Modifier,
-    isDark: Boolean = isSystemInDarkTheme()
+    modifier: Modifier = Modifier
 ) {
-    val bgColor = if (isDark) Color(0xFF090D16) else Color(0xFFF8FAFC)
-    val headerBg = if (isDark) Color(0xFF131B2E) else Color.White
+    val colors = AuraTheme.colors
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = bgColor,
+        containerColor = colors.background,
         topBar = {
             TopAppBar(
                 title = {
@@ -155,12 +149,12 @@ fun DrawResultsContent(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(4.dp))
-                                .background(if (isDark) Color(0xFF1E293B) else Color(0xFFE2E8F0))
+                                .background(colors.surfaceContainer)
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                         ) {
                             Text(
                                 text = "img",
-                                color = if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B),
+                                color = colors.onSurfaceSubtle,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -171,14 +165,14 @@ fun DrawResultsContent(
                             text = "Aura Lotto",
                             style = AuraTypography.headlineSm.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFFCA8A04)
+                                color = colors.primary
                             )
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = headerBg,
-                    titleContentColor = Color(0xFFCA8A04)
+                    containerColor = colors.surface,
+                    titleContentColor = colors.primary
                 ),
                 modifier = Modifier.shadow(2.dp)
             )
@@ -191,7 +185,7 @@ fun DrawResultsContent(
         ) {
             when (uiState) {
                 is DrawResultsUiState.Loading -> {
-                    LoadingView(isDark = isDark)
+                    LoadingView()
                 }
 
                 is DrawResultsUiState.Error -> {
@@ -205,8 +199,7 @@ fun DrawResultsContent(
                         ErrorView(
                             state = uiState,
                             onRetry = onRetry,
-                            onLoadFixture = onLoadFixture,
-                            isDark = isDark
+                            onLoadFixture = onLoadFixture
                         )
                     }
                 }
@@ -233,8 +226,7 @@ fun DrawResultsContent(
                             if (uiState.bannerMessage != null) {
                                 item(key = "banner") {
                                     InfoBanner(
-                                        message = uiState.bannerMessage,
-                                        isDark = isDark
+                                        message = uiState.bannerMessage
                                     )
                                 }
                             }
@@ -245,8 +237,7 @@ fun DrawResultsContent(
                             ) { cardModel ->
                                 LotteryCard(
                                     model = cardModel,
-                                    onClick = { onCardClick(cardModel) },
-                                    isDark = isDark
+                                    onClick = { onCardClick(cardModel) }
                                 )
                             }
                         }
@@ -258,7 +249,8 @@ fun DrawResultsContent(
 }
 
 @Composable
-private fun LoadingView(isDark: Boolean) {
+private fun LoadingView() {
+    val colors = AuraTheme.colors
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -268,13 +260,13 @@ private fun LoadingView(isDark: Boolean) {
             verticalArrangement = Arrangement.spacedBy(AuraSpacing.spaceMd)
         ) {
             CircularProgressIndicator(
-                color = AuraColors.PrimaryContainer,
+                color = colors.primary,
                 modifier = Modifier.size(48.dp)
             )
             Text(
                 text = "Ziehungsergebnisse werden geladen...",
                 style = AuraTypography.bodyMd,
-                color = if (isDark) AuraColors.DarkOnSurfaceVariant else AuraColors.OnSurfaceVariant
+                color = colors.onSurfaceVariant
             )
         }
     }
@@ -283,17 +275,15 @@ private fun LoadingView(isDark: Boolean) {
 @Composable
 private fun InfoBanner(
     message: String,
-    isDark: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val bgColor = if (isDark) AuraColors.DarkSurfaceContainerHigh else Color(0xFFFEF3C7)
-    val textColor = if (isDark) AuraColors.DarkOnSurface else Color(0xFF92400E)
+    val colors = AuraTheme.colors
 
     Box(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
-            .background(bgColor)
+            .background(colors.infoBannerBackground)
             .padding(horizontal = AuraSpacing.spaceMd, vertical = AuraSpacing.spaceSm)
     ) {
         Row(
@@ -307,7 +297,7 @@ private fun InfoBanner(
             Text(
                 text = message,
                 style = AuraTypography.bodySm.copy(fontWeight = FontWeight.SemiBold),
-                color = textColor
+                color = colors.infoBannerText
             )
         }
     }
@@ -317,12 +307,9 @@ private fun InfoBanner(
 private fun ErrorView(
     state: DrawResultsUiState.Error,
     onRetry: () -> Unit,
-    onLoadFixture: () -> Unit,
-    isDark: Boolean
+    onLoadFixture: () -> Unit
 ) {
-    val onSurface = if (isDark) AuraColors.DarkOnSurface else AuraColors.OnSurface
-    val onSurfaceVariant =
-        if (isDark) AuraColors.DarkOnSurfaceVariant else AuraColors.OnSurfaceVariant
+    val colors = AuraTheme.colors
 
     Box(
         modifier = Modifier
@@ -344,14 +331,14 @@ private fun ErrorView(
             Text(
                 text = "Ergebnisse konnten nicht geladen werden",
                 style = AuraTypography.headlineSm.copy(fontWeight = FontWeight.Bold),
-                color = onSurface,
+                color = colors.onSurface,
                 textAlign = TextAlign.Center
             )
 
             Text(
                 text = state.message,
                 style = AuraTypography.bodyMd,
-                color = onSurfaceVariant,
+                color = colors.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
 
@@ -363,8 +350,8 @@ private fun ErrorView(
                 Button(
                     onClick = onRetry,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = AuraColors.PrimaryContainer,
-                        contentColor = Color.White
+                        containerColor = colors.primary,
+                        contentColor = colors.onPrimary
                     )
                 ) {
                     Text("Erneut versuchen")
@@ -374,7 +361,7 @@ private fun ErrorView(
                     OutlinedButton(
                         onClick = onLoadFixture,
                         colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = AuraColors.PrimaryContainer
+                            contentColor = colors.primary
                         )
                     ) {
                         Text("Beispieldaten laden")

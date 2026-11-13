@@ -5,43 +5,58 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ReadOnlyComposable
 
-private val LightColorScheme = lightColorScheme(
-    primary = AuraColors.PrimaryContainer,
-    onPrimary = AuraColors.OnPrimary,
-    primaryContainer = AuraColors.JackpotGold,
-    onPrimaryContainer = AuraColors.OnPrimaryContainer,
-    secondary = AuraColors.Primary,
-    onSecondary = AuraColors.OnPrimary,
-    background = AuraColors.Background,
-    onBackground = AuraColors.OnSurface,
-    surface = AuraColors.Surface,
-    onSurface = AuraColors.OnSurface,
-    surfaceVariant = AuraColors.SurfaceContainerLow,
-    onSurfaceVariant = AuraColors.OnSurfaceVariant,
-    outline = AuraColors.Outline,
-    outlineVariant = AuraColors.OutlineVariant,
-    error = AuraColors.Error,
-    onError = AuraColors.OnError
+/**
+ * Accessor object for custom Aura Lotto Design System tokens.
+ */
+object AuraTheme {
+    val colors: AuraColorScheme
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalAuraColorScheme.current
+
+    val spacing: AuraSpacing
+        get() = AuraSpacing
+}
+
+private fun AuraColorScheme.toMaterialLight() = lightColorScheme(
+    primary = primary,
+    onPrimary = onPrimary,
+    primaryContainer = primaryContainer,
+    onPrimaryContainer = onPrimaryContainer,
+    secondary = primary,
+    onSecondary = onPrimary,
+    background = background,
+    onBackground = onSurface,
+    surface = surface,
+    onSurface = onSurface,
+    surfaceVariant = surfaceContainerLow,
+    onSurfaceVariant = onSurfaceVariant,
+    outline = outline,
+    outlineVariant = outlineVariant,
+    error = error,
+    onError = onError
 )
 
-private val DarkColorScheme = darkColorScheme(
-    primary = AuraColors.JackpotGold,
-    onPrimary = AuraColors.OnSurface,
-    primaryContainer = AuraColors.PrimaryContainer,
-    onPrimaryContainer = AuraColors.OnPrimary,
-    secondary = AuraColors.Primary,
-    onSecondary = AuraColors.OnPrimary,
-    background = AuraColors.DarkBackground,
-    onBackground = AuraColors.DarkOnSurface,
-    surface = AuraColors.DarkSurface,
-    onSurface = AuraColors.DarkOnSurface,
-    surfaceVariant = AuraColors.DarkSurfaceContainer,
-    onSurfaceVariant = AuraColors.DarkOnSurfaceVariant,
-    outline = AuraColors.Outline,
-    outlineVariant = AuraColors.DarkOutlineVariant,
-    error = AuraColors.Error,
-    onError = AuraColors.OnError
+private fun AuraColorScheme.toMaterialDark() = darkColorScheme(
+    primary = primary,
+    onPrimary = onSurface,
+    primaryContainer = primaryContainer,
+    onPrimaryContainer = onPrimaryContainer,
+    secondary = primary,
+    onSecondary = onPrimary,
+    background = background,
+    onBackground = onSurface,
+    surface = surface,
+    onSurface = onSurface,
+    surfaceVariant = surfaceContainer,
+    onSurfaceVariant = onSurfaceVariant,
+    outline = outline,
+    outlineVariant = outlineVariant,
+    error = error,
+    onError = onError
 )
 
 @Composable
@@ -49,11 +64,16 @@ fun AuraLottoTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val auraColorScheme = if (darkTheme) AuraDarkColorScheme else AuraLightColorScheme
+    val materialColorScheme = if (darkTheme) auraColorScheme.toMaterialDark() else auraColorScheme.toMaterialLight()
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = AuraTypography.materialTypography,
-        content = content
-    )
+    CompositionLocalProvider(
+        LocalAuraColorScheme provides auraColorScheme
+    ) {
+        MaterialTheme(
+            colorScheme = materialColorScheme,
+            typography = AuraTypography.materialTypography,
+            content = content
+        )
+    }
 }

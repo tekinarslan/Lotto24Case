@@ -8,7 +8,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -30,25 +29,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.lotto24case.presentation.model.BallUiModel
 import de.lotto24case.presentation.model.BallUiType
-import de.lotto24case.presentation.theme.AuraColors
+import de.lotto24case.presentation.theme.AuraTheme
 
 /**
  * High-fidelity Lottery Ball matching the sunken ball tray specifications from DESIGN.md and code.html:
- * - Regular: Pure white background, subtle border, slate-900 bold text.
+ * - Regular: semantic ball background, subtle border, onSurface text.
  * - Superzahl: Vibrant rose-red (#E11D48 / #DC2626) background, pure white bold text, rose shadow.
  * - Eurozahlen: Rich gold/amber (#CA8A04) background, pure white bold text, amber shadow.
  * - Physics spring bounce animation on press.
+ * - Colors derived from [AuraTheme.colors].
  */
 @Composable
 fun LotteryBall(
     model: BallUiModel,
     modifier: Modifier = Modifier,
     size: Dp = 38.dp,
-    onClick: () -> Unit = {},
-    isDark: Boolean = isSystemInDarkTheme()
+    onClick: () -> Unit = {}
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
+    val colors = AuraTheme.colors
 
     val scale by animateFloatAsState(
         targetValue = if (isPressed) 1.15f else 1.0f,
@@ -61,16 +61,28 @@ fun LotteryBall(
 
     val (bgBrush, textColor, borderColor, shadowColor) = when (model.type) {
         BallUiType.REGULAR -> {
-            val bg = if (isDark) Color(0xFF1E293B) else Color.White
-            val text = if (isDark) Color(0xFFF8FAFC) else Color(0xFF0F172A)
-            val border = if (isDark) Color(0xFF334155) else Color(0xFFE2E8F0)
-            Tuple4(bg, text, border, Color.Black.copy(alpha = 0.04f))
+            Tuple4(
+                colors.ballRegularBackground,
+                colors.ballRegularText,
+                colors.ballRegularBorder,
+                Color.Black.copy(alpha = 0.04f)
+            )
         }
         BallUiType.SUPER_ZAHL -> {
-            Tuple4(Color(0xFFE11D48), Color.White, Color.Transparent, Color(0xFFE11D48).copy(alpha = 0.35f))
+            Tuple4(
+                colors.superzahlRuby,
+                Color.White,
+                Color.Transparent,
+                colors.superzahlRuby.copy(alpha = 0.35f)
+            )
         }
         BallUiType.EURO_ZAHL -> {
-            Tuple4(Color(0xFFCA8A04), Color.White, Color.Transparent, Color(0xFFCA8A04).copy(alpha = 0.40f))
+            Tuple4(
+                colors.eurozahlAmber,
+                Color.White,
+                Color.Transparent,
+                colors.eurozahlAmber.copy(alpha = 0.40f)
+            )
         }
     }
 

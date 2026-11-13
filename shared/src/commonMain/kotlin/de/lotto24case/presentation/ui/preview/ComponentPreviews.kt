@@ -2,13 +2,10 @@ package de.lotto24case.presentation.ui.preview
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.lotto24case.domain.model.LotteryType
@@ -16,12 +13,10 @@ import de.lotto24case.presentation.model.BallUiModel
 import de.lotto24case.presentation.model.BallUiType
 import de.lotto24case.presentation.model.LotteryCardUiModel
 import de.lotto24case.presentation.model.SupplementaryGameUiModel
-import de.lotto24case.presentation.theme.AuraColors
+import de.lotto24case.presentation.theme.AuraDarkColorScheme
 import de.lotto24case.presentation.theme.AuraLottoTheme
-import de.lotto24case.presentation.ui.component.JackpotBadge
 import de.lotto24case.presentation.ui.component.LotteryBall
 import de.lotto24case.presentation.ui.component.LotteryCard
-import de.lotto24case.presentation.ui.component.NextDrawPill
 import kotlinx.collections.immutable.persistentListOf
 
 val SampleLotto6aus49Card = LotteryCardUiModel(
@@ -99,7 +94,7 @@ fun PreviewLotteryBallVariantsDark() {
     AuraLottoTheme(darkTheme = true) {
         Row(
             modifier = Modifier
-                .background(AuraColors.DarkBackground)
+                .background(AuraDarkColorScheme.background)
                 .padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -128,7 +123,7 @@ fun PreviewLotto6aus49CardDark() {
         LotteryCard(
             model = SampleLotto6aus49Card,
             modifier = Modifier
-                .background(AuraColors.DarkBackground)
+                .background(AuraDarkColorScheme.background)
                 .padding(16.dp)
         )
     }
@@ -152,7 +147,7 @@ fun PreviewEurojackpotCardDark() {
         LotteryCard(
             model = SampleEurojackpotCard,
             modifier = Modifier
-                .background(AuraColors.DarkBackground)
+                .background(AuraDarkColorScheme.background)
                 .padding(16.dp)
         )
     }
