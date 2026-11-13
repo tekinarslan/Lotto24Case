@@ -409,7 +409,7 @@
         <span class="badge-pulse" style="background-color: var(--success);"></span>
         <span>Phase 7 Completed</span>
       </div>
-      <div style="margin-top: 6px; font-size: 11px;">Next: Phase 8 Main Screen & Animations</div>
+      <div style="margin-top: 6px; font-size: 11px;">Current: Phase 10 Screenshot Testing | Next: Phase 9 Bonus Features</div>
     </div>
   </aside>
 
@@ -673,7 +673,7 @@
 │   └── repository/            <-- LotteryRepositoryImpl
 │
 ├── presentation/              <-- UI Layer (Compose Multiplatform)
-│   ├── components/            <-- LotteryBall, JackpotBadge, NextDrawBadge, LotteryCard
+│   ├── components/            <-- LotteryBall, NextDrawPill, LotteryCard
 │   ├── screen/                <-- DrawResultsScreen, DrawResultsUiState
 │   ├── viewmodel/             <-- DrawResultsViewModel (MVI / UDF)
 │   └── theme/                 <-- Typography, Colors, Dimens, Shape
@@ -874,7 +874,7 @@
           <input type="checkbox" checked disabled> Implemented <code>AuraColors</code>, <code>AuraSpacing</code>, <code>AuraTypography</code>, and <code>AuraLottoTheme</code> (Light & Dark)
         </div>
         <div class="checklist-item">
-          <input type="checkbox" checked disabled> Implemented atomic components: <code>LotteryBall</code> (Regular, Ruby Superzahl, Gold Eurozahlen), <code>JackpotBadge</code>, <code>NextDrawPill</code>, <code>LotteryCard</code>
+          <input type="checkbox" checked disabled> Implemented atomic components: <code>LotteryBall</code> (Regular, Ruby Superzahl, Gold Eurozahlen), <code>NextDrawPill</code>, <code>LotteryCard</code>
         </div>
         <div class="checklist-item">
           <input type="checkbox" checked disabled> Configured interactive <code>@Preview</code> suites for Light and Dark modes
@@ -884,17 +884,17 @@
       <div class="phase-card">
         <div class="phase-header">
           <span class="phase-title">Phase 8: Main Screen & Physics-based Animations</span>
-          <span class="pill pill-pending">Pending</span>
+          <span class="pill pill-done">Completed</span>
         </div>
-        <p>Full screen composition with spring physics, bounce animations for balls, and pull-to-refresh.</p>
+        <p>Full screen composition with spring physics, bounce animations for balls, PullCordLamp theme toggle, and pull-to-refresh.</p>
         <div class="checklist-item">
-          <input type="checkbox"> Physics-based ball drop/bounce entrance (<code>Animatable</code> spring)
-        </div>
-        <div class="checklist-item">
-          <input type="checkbox"> Pull-to-refresh & Shimmer loading skeleton
+          <input type="checkbox" checked disabled> Physics-based ball drop/bounce entrance (Single-progress Spring with <code>graphicsLayer</code> & <code>drawWithCache</code>)
         </div>
         <div class="checklist-item">
-          <input type="checkbox"> Offline banner warning if displaying cached data
+          <input type="checkbox" checked disabled> Pull-to-refresh & PullCordLamp physical pull cord for Dark/Light mode toggle
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox" checked disabled> Offline & fixture banners with dedicated semantic theme tokens
         </div>
       </div>
 

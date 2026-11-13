@@ -1,8 +1,11 @@
+import com.android.build.api.variant.HasHostTestsBuilder
+import com.android.build.api.variant.HostTestBuilder
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.roborazzi)
 }
 
 kotlin {
@@ -23,6 +26,17 @@ dependencies {
     implementation(libs.androidx.glance)
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)
+
+    // Screenshot Testing (Roborazzi + ComposablePreviewScanner + Robolectric)
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.roborazzi)
+    testImplementation(libs.roborazzi.compose)
+    testImplementation(libs.roborazzi.junit.rule)
+    testImplementation(libs.roborazzi.compose.preview.scanner.support)
+    testImplementation(libs.composable.preview.scanner.android)
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
 
 android {
@@ -56,5 +70,19 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            all { test ->
+                test.systemProperties["robolectric.pixelCopyRenderMode"] = "hardware"
+            }
+        }
+    }
+}
+
+androidComponents {
+    beforeVariants { variantBuilder ->
+        (variantBuilder as? HasHostTestsBuilder)?.hostTests?.get(HostTestBuilder.UNIT_TEST_TYPE)?.enable = true
     }
 }

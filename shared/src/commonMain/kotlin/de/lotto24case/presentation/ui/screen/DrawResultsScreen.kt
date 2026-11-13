@@ -353,27 +353,37 @@ private fun ErrorView(
 
             Spacer(modifier = Modifier.height(AuraSpacing.spaceSm))
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(AuraSpacing.spaceSm)
+            Column(
+                modifier = Modifier.fillMaxWidth(0.85f),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(AuraSpacing.spaceSm)
             ) {
                 Button(
                     onClick = onRetry,
+                    modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = colors.primary,
                         contentColor = colors.onPrimary
                     )
                 ) {
-                    Text("Erneut versuchen")
+                    Text(
+                        text = "Erneut versuchen",
+                        maxLines = 1
+                    )
                 }
 
                 if (state.canLoadFixture) {
                     OutlinedButton(
                         onClick = onLoadFixture,
+                        modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.outlinedButtonColors(
                             contentColor = colors.primary
                         )
                     ) {
-                        Text("Beispieldaten laden")
+                        Text(
+                            text = "Beispieldaten laden",
+                            maxLines = 1
+                        )
                     }
                 }
             }

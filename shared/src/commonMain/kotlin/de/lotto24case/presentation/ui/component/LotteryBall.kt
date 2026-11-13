@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.lotto24case.presentation.model.BallUiModel
 import de.lotto24case.presentation.model.BallUiType
+import de.lotto24case.presentation.theme.AuraColorScheme
 import de.lotto24case.presentation.theme.AuraTheme
 import kotlin.math.sin
 import kotlinx.coroutines.delay
@@ -41,7 +42,7 @@ import kotlinx.coroutines.delay
 /**
  * High-fidelity 3D Lottery Ball with drop-and-settle spring entrance and tactile press physics:
  * - 3D Spherical Rendering: Semantic highlight and shadow gradient with top-left specular illumination.
- *   Regular balls use [AuraTheme.colors.ballRegularHighlight] and [AuraTheme.colors.ballRegularShadow]
+ *   Regular balls use [AuraColorScheme.ballRegularHighlight] and [AuraColorScheme.ballRegularShadow]
  *   to ensure crisp 3D depth in both Light and Dark modes.
  * - Single-Progress Performance Architecture: Instead of multiple Animatable coroutines, each ball uses
  *   a SINGLE Animatable progress (0f -> 1f) driven by Spring physics. Translation, rotation, squash/stretch,

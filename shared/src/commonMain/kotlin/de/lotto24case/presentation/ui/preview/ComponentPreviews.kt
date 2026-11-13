@@ -33,13 +33,24 @@ val SampleLotto6aus49Card = LotteryCardUiModel(
     specialBallLabel = "Superzahl: 7",
     superNumber = 7,
     balls = persistentListOf(
-        BallUiModel(4, BallUiType.REGULAR),
-        BallUiModel(19, BallUiType.REGULAR),
-        BallUiModel(24, BallUiType.REGULAR),
-        BallUiModel(43, BallUiType.REGULAR),
-        BallUiModel(44, BallUiType.REGULAR),
-        BallUiModel(45, BallUiType.REGULAR),
-        BallUiModel(7, BallUiType.SUPER_ZAHL)
+        BallUiModel(4, BallUiType.REGULAR, index = 0),
+        BallUiModel(19, BallUiType.REGULAR, index = 1),
+        BallUiModel(24, BallUiType.REGULAR, index = 2),
+        BallUiModel(43, BallUiType.REGULAR, index = 3),
+        BallUiModel(44, BallUiType.REGULAR, index = 4),
+        BallUiModel(45, BallUiType.REGULAR, index = 5),
+        BallUiModel(7, BallUiType.SUPER_ZAHL, index = 6)
+    ),
+    regularBalls = persistentListOf(
+        BallUiModel(4, BallUiType.REGULAR, index = 0),
+        BallUiModel(19, BallUiType.REGULAR, index = 1),
+        BallUiModel(24, BallUiType.REGULAR, index = 2),
+        BallUiModel(43, BallUiType.REGULAR, index = 3),
+        BallUiModel(44, BallUiType.REGULAR, index = 4),
+        BallUiModel(45, BallUiType.REGULAR, index = 5)
+    ),
+    specialBalls = persistentListOf(
+        BallUiModel(7, BallUiType.SUPER_ZAHL, index = 6)
     ),
     supplementaryGames = persistentListOf(
         SupplementaryGameUiModel("Spiel 77", "7312244"),
@@ -61,13 +72,24 @@ val SampleEurojackpotCard = LotteryCardUiModel(
     mainBallsLabel = "5 GEWINNZAHLEN",
     specialBallLabel = "2 EUROZAHLEN",
     balls = persistentListOf(
-        BallUiModel(1, BallUiType.REGULAR),
-        BallUiModel(12, BallUiType.REGULAR),
-        BallUiModel(15, BallUiType.REGULAR),
-        BallUiModel(31, BallUiType.REGULAR),
-        BallUiModel(47, BallUiType.REGULAR),
-        BallUiModel(9, BallUiType.EURO_ZAHL),
-        BallUiModel(10, BallUiType.EURO_ZAHL)
+        BallUiModel(1, BallUiType.REGULAR, index = 0),
+        BallUiModel(12, BallUiType.REGULAR, index = 1),
+        BallUiModel(15, BallUiType.REGULAR, index = 2),
+        BallUiModel(31, BallUiType.REGULAR, index = 3),
+        BallUiModel(47, BallUiType.REGULAR, index = 4),
+        BallUiModel(9, BallUiType.EURO_ZAHL, index = 5),
+        BallUiModel(10, BallUiType.EURO_ZAHL, index = 6)
+    ),
+    regularBalls = persistentListOf(
+        BallUiModel(1, BallUiType.REGULAR, index = 0),
+        BallUiModel(12, BallUiType.REGULAR, index = 1),
+        BallUiModel(15, BallUiType.REGULAR, index = 2),
+        BallUiModel(31, BallUiType.REGULAR, index = 3),
+        BallUiModel(47, BallUiType.REGULAR, index = 4)
+    ),
+    specialBalls = persistentListOf(
+        BallUiModel(9, BallUiType.EURO_ZAHL, index = 5),
+        BallUiModel(10, BallUiType.EURO_ZAHL, index = 6)
     ),
     supplementaryGames = persistentListOf(),
     hasJackpot = true
@@ -152,3 +174,71 @@ fun PreviewEurojackpotCardDark() {
         )
     }
 }
+
+@Preview
+@Composable
+fun PreviewDrawResultsScreenLoadingLight() {
+    AuraLottoTheme(darkTheme = false) {
+        de.lotto24case.presentation.ui.screen.DrawResultsScreen(
+            uiState = de.lotto24case.presentation.state.DrawResultsUiState.Loading,
+            onRefresh = {},
+            onRetry = {},
+            onLoadFixture = {},
+            onCardClick = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+fun PreviewDrawResultsScreenSuccessLight() {
+    AuraLottoTheme(darkTheme = false) {
+        de.lotto24case.presentation.ui.screen.DrawResultsScreen(
+            uiState = de.lotto24case.presentation.state.DrawResultsUiState.Success(
+                draws = persistentListOf(SampleLotto6aus49Card, SampleEurojackpotCard),
+                isRefreshing = false,
+                isFixture = false
+            ),
+            onRefresh = {},
+            onRetry = {},
+            onLoadFixture = {},
+            onCardClick = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+fun PreviewDrawResultsScreenSuccessDark() {
+    AuraLottoTheme(darkTheme = true) {
+        de.lotto24case.presentation.ui.screen.DrawResultsScreen(
+            uiState = de.lotto24case.presentation.state.DrawResultsUiState.Success(
+                draws = persistentListOf(SampleLotto6aus49Card, SampleEurojackpotCard),
+                isRefreshing = false,
+                isFixture = false
+            ),
+            onRefresh = {},
+            onRetry = {},
+            onLoadFixture = {},
+            onCardClick = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+fun PreviewDrawResultsScreenErrorLight() {
+    AuraLottoTheme(darkTheme = false) {
+        de.lotto24case.presentation.ui.screen.DrawResultsScreen(
+            uiState = de.lotto24case.presentation.state.DrawResultsUiState.Error(
+                message = "Netzwerkfehler: Keine Internetverbindung",
+                canLoadFixture = true
+            ),
+            onRefresh = {},
+            onRetry = {},
+            onLoadFixture = {},
+            onCardClick = {}
+        )
+    }
+}
+

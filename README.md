@@ -51,6 +51,34 @@ open docs/index.html
 * **Android**: `Lotto24Application` initializes Koin with `androidContext` and `androidLogger`.
 * **iOS**: `MainViewController()` in `iosMain` initializes Koin idempotently via `initKoin()` using Koin's internal `GlobalContext.getOrNull()`, ensuring zero stale mutable state flags across test teardowns or multiple invocations.
 
+### 5. Physics-Based Animations & 3D Shaders (Phase 8)
+* **Single-Progress Physics Pipeline**:
+  * To avoid multi-coroutine micro-stuttering and excessive allocations on both Android and iOS, each `LotteryBall` entrance animation derives translation, rotation, scale (squash/stretch on impact), and alpha from a single unified `Animatable(0f, 1f)`.
+  * Physics simulation uses `spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow)`.
+  * Controlled initial drop height: `-50.dp` from above the card with a `40-60ms` per-ball stagger delay.
+  * Exact settle guarantee: settles deterministically at `translationY = 0`, `scale = 1`, `rotation = 0`.
+* **Zero Per-Frame Allocations (`drawWithCache` & `graphicsLayer`)**:
+  * Ball 3D radial highlights and shadows are cached via `Modifier.drawWithCache` so that `Brush.radialGradient` instances are never re-allocated per frame.
+  * Visual transforms apply strictly through `Modifier.graphicsLayer` without triggering expensive layout re-measurement (`Modifier.offset` avoided).
+  * Stable deterministic animation key: `lotteryId + drawIdentifier + type + index` guarantees that animations trigger only on initial display or when new draw numbers arrive, completely ignoring regular Compose recompositions.
+* **Interactive Pull-Cord Theme Switcher**:
+  * Custom pull-cord toggle widget with interactive spring physics and tactile haptic feedback (`LocalHapticFeedback`), allowing users to smoothly switch between Aura Light and Aura Dark themes.
+
+### 6. Automated Screenshot Regression Testing (Phase 10)
+* **Roborazzi + ComposablePreviewScanner + Robolectric**:
+  * Headless JVM-based visual regression testing without needing an active Android emulator or physical device.
+  * Dynamically discovers all Compose `@Preview` methods in `presentation.ui.preview` using `AndroidComposablePreviewScanner`.
+  * High-fidelity native graphics rendering enabled via `@GraphicsMode(GraphicsMode.Mode.NATIVE)` and `robolectric.pixelCopyRenderMode = hardware`.
+  * Golden reference images are automatically managed under `androidApp/screenshots/` and verified in CI/CD via `./gradlew :androidApp:verifyRoborazziDebug`.
+  * Tested scenarios:
+    * `PreviewDrawResultsScreenLoadingLight`
+    * `PreviewDrawResultsScreenSuccessLight`
+    * `PreviewDrawResultsScreenSuccessDark`
+    * `PreviewDrawResultsScreenErrorLight`
+    * `PreviewLotto6aus49CardLight` & `PreviewLotto6aus49CardDark`
+    * `PreviewEurojackpotCardLight` & `PreviewEurojackpotCardDark`
+    * `PreviewLotteryBallVariantsLight` & `PreviewLotteryBallVariantsDark` (Regular 3D gradient, Superzahl Ruby, Eurozahl Amber).
+
 ---
 
 ## Tech Stack
@@ -102,7 +130,7 @@ open docs/index.html
 │   │       ├── state/                # DrawResultsUiState (Loading, Success, Error)
 │   │       ├── theme/                # Aura Lotto Design System (AuraColors, AuraTypography, AuraSpacing)
 │   │       ├── ui/
-│   │       │   ├── component/        # Atomic components (LotteryBall, JackpotBadge, NextDrawPill, LotteryCard)
+│   │       │   ├── component/        # Atomic components (LotteryBall, NextDrawPill, LotteryCard)
 │   │       │   ├── preview/          # Light and Dark Compose previews
 │   │       │   └── screen/           # DrawResultsScreen (Pull-to-refresh, cards, error/fixture actions)
 │   │       └── viewmodel/            # DrawResultsViewModel (UDF, state guard, 404 checks)
@@ -125,6 +153,15 @@ open docs/index.html
 * `CurrencyFormatterTest`: German millions formatting (`"80 MIO €"`), badge formatting (`"80 MIO"`), German decimal commas (`"1,5 MIO €"`), sub-millions (`"950.000 €"`), and safe fallbacks.
 * `LotteryDateTimeFormatterTest`: German weekday abbreviations, leap year handling, and timezone day boundaries.
 * `KoinModuleTest`: automated dependency graph resolution validation.
+
+### Running Screenshot Tests (Roborazzi)
+```bash
+# Verify screenshots against golden references
+./gradlew :androidApp:verifyRoborazziDebug
+
+# Record/update golden references (stored in androidApp/screenshots/)
+./gradlew :androidApp:recordRoborazziDebug
+```
 
 ### Building the Android App
 ```bash
