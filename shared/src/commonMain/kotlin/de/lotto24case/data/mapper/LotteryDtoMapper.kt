@@ -2,30 +2,29 @@ package de.lotto24case.data.mapper
 
 import de.lotto24case.data.remote.dto.JackpotDto
 import de.lotto24case.data.remote.dto.LotteryResponseDto
+import de.lotto24case.domain.model.Currency
 import de.lotto24case.domain.model.Jackpot
 import de.lotto24case.domain.model.LotteryDraw
 import de.lotto24case.domain.model.LotteryType
+import de.lotto24case.domain.model.Money
 import de.lotto24case.domain.model.SupplementaryLottery
 import kotlin.time.Instant
 
 /**
- * Maps remote DTO responses from the Lotto24 API to clean domain [LotteryDraw] models.
+ * Resilient DTO to Domain mapper.
  *
- * Implements defensive fallback parsing to guarantee system resilience against malformed
- * or partially missing backend data.
+ * Requirements:
+ * - Tolerates null or missing fields in API response.
+ * - Extracts winning numbers without crash.
+ * - Parses dates into ISO-8601 [Instant].
+ * - Maps raw amounts into semantic [Money] value objects.
  */
 object LotteryDtoMapper {
 
-    /**
-     * Maps a list of [LotteryResponseDto] to domain [LotteryDraw] list.
-     * Silently ignores unparseable or unsupported lottery items.
-     */
-    fun mapResponseList(dtos: List<LotteryResponseDto>): List<LotteryDraw> =
-        dtos.mapNotNull { mapSingle(it) }
+    fun mapResponseList(dtos: List<LotteryResponseDto>): List<LotteryDraw> {
+        return dtos.mapNotNull { mapSingle(it) }
+    }
 
-    /**
-     * Maps a single [LotteryResponseDto] to a concrete [LotteryDraw] variant.
-     */
     fun mapSingle(dto: LotteryResponseDto): LotteryDraw? {
         val type = LotteryType.fromId(dto.lottery) ?: return null
         val lastDraw = dto.lastDraw ?: return null
@@ -45,9 +44,9 @@ object LotteryDtoMapper {
         val nextDrawIdentifier = nextDraw?.drawIdentifier
         val timeZone = nextDraw?.timeZone ?: if (type == LotteryType.EUROJACKPOT) "Europe/Helsinki" else "Europe/Berlin"
 
-        val jackpot = mapJackpot(nextDraw?.jackpot)
-        val totalStake = lastDraw.totalStake
-        val currency = lastDraw.currency ?: "EUR"
+        val currency = parseCurrency(lastDraw.currency ?: nextDraw?.jackpot?.currency)
+        val jackpot = mapJackpot(nextDraw?.jackpot, currency)
+        val totalStake = Money.fromMajorUnitsString(lastDraw.totalStake, currency)
 
         return when (type) {
             LotteryType.LOTTO_6AUS49 -> {
@@ -59,7 +58,6 @@ object LotteryDtoMapper {
                     timeZone = timeZone,
                     jackpot = jackpot,
                     totalStake = totalStake,
-                    currency = currency,
                     numbers = numbers,
                     superNumber = drawResult.superNumber,
                     supplementaryLotteries = extractSupplementaryLotteries(dto)
@@ -74,7 +72,6 @@ object LotteryDtoMapper {
                     timeZone = timeZone,
                     jackpot = jackpot,
                     totalStake = totalStake,
-                    currency = currency,
                     numbers = numbers,
                     euroNumbers = drawResult.euroNumbers ?: emptyList()
                 )
@@ -82,17 +79,24 @@ object LotteryDtoMapper {
         }
     }
 
-    private fun mapJackpot(jackpotDto: JackpotDto?): Jackpot? {
+    private fun mapJackpot(jackpotDto: JackpotDto?, currency: Currency): Jackpot? {
         if (jackpotDto == null) return null
-        val isSupported = jackpotDto.jackpotSupported ?: true
-        val amount = jackpotDto.jackpots?.get("WC_1")
-        val currency = jackpotDto.currency ?: "EUR"
+
+        val amountStr = jackpotDto.jackpots?.get("WC_1")
+        val isSupported = jackpotDto.jackpotSupported ?: (amountStr != null)
+        val money = Money.fromMajorUnitsString(amountStr, currency)
 
         return Jackpot(
-            amount = amount,
-            currency = currency,
+            amount = money,
             isSupported = isSupported
         )
+    }
+
+    private fun parseCurrency(currencyStr: String?): Currency {
+        return when (currencyStr?.uppercase()) {
+            "EUR" -> Currency.EUR
+            else -> Currency.EUR
+        }
     }
 
     /**

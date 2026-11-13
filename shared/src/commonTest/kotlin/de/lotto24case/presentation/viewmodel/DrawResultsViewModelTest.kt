@@ -1,6 +1,7 @@
 package de.lotto24case.presentation.viewmodel
 
 import app.cash.turbine.test
+import de.lotto24case.domain.model.Money
 import de.lotto24case.domain.model.Jackpot
 import de.lotto24case.domain.model.LotteryDraw
 import de.lotto24case.domain.model.LotteryResult
@@ -50,8 +51,8 @@ class DrawResultsViewModelTest {
         drawIdentifier = "2023-01-21",
         nextDrawDate = Instant.parse("2023-01-25T18:25:00Z"),
         nextDrawIdentifier = "2023-01-25",
-        jackpot = Jackpot(amount = "6000000.00"),
-        totalStake = "44712847.20",
+        jackpot = Jackpot(amount = Money.fromMajorUnitsString("6000000.00")),
+        totalStake = Money.fromMajorUnitsString("44712847.20"),
         numbers = listOf(4, 19, 24, 43, 44, 45),
         superNumber = 7,
         supplementaryLotteries = emptyList()

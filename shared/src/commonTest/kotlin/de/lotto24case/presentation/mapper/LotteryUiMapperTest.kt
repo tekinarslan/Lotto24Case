@@ -1,5 +1,6 @@
 package de.lotto24case.presentation.mapper
 
+import de.lotto24case.domain.model.Money
 import de.lotto24case.domain.model.Jackpot
 import de.lotto24case.domain.model.LotteryDraw
 import de.lotto24case.domain.model.SupplementaryLottery
@@ -20,8 +21,8 @@ class LotteryUiMapperTest {
             nextDrawDate = Instant.parse("2020-09-23T18:25:00Z"),
             nextDrawIdentifier = "2020-09-23",
             timeZone = "Europe/Berlin",
-            jackpot = Jackpot(amount = "6000000.00"),
-            totalStake = "44712847.20",
+            jackpot = Jackpot(amount = Money.fromMajorUnitsString("6000000.00")),
+            totalStake = Money.fromMajorUnitsString("44712847.20"),
             numbers = listOf(4, 19, 24, 43, 44, 45),
             superNumber = 7,
             supplementaryLotteries = listOf(
@@ -37,7 +38,8 @@ class LotteryUiMapperTest {
         assertEquals("Fr., 18.09.2020", uiModel.formattedDrawDate)
         assertEquals("Nächste Ziehung: Mi., 23.09.2020", uiModel.nextDrawBadgeText)
         assertEquals("6 MIO €", uiModel.jackpotFormatted)
-        assertEquals("6 MIO", uiModel.jackpotBadgeFormatted)
+        assertEquals("6", uiModel.jackpotAmountValue)
+        assertEquals("MIO", uiModel.jackpotUnitValue)
         assertTrue(uiModel.hasJackpot)
 
         // Verify balls: 6 regular + 1 superzahl mapped to UI types
@@ -66,8 +68,8 @@ class LotteryUiMapperTest {
             nextDrawDate = null,
             nextDrawIdentifier = null,
             timeZone = "Europe/Helsinki",
-            jackpot = Jackpot(amount = "80000000.00"),
-            totalStake = "54340762.00",
+            jackpot = Jackpot(amount = Money.fromMajorUnitsString("80000000.00")),
+            totalStake = Money.fromMajorUnitsString("54340762.00"),
             numbers = listOf(1, 12, 15, 31, 47),
             euroNumbers = listOf(9, 10)
         )
@@ -77,7 +79,8 @@ class LotteryUiMapperTest {
         // Explicitly tests that Helsinki timezone is used (Saturday, 21.01.2023)
         assertEquals("Sa., 21.01.2023", uiModel.formattedDrawDate)
         assertEquals("80 MIO €", uiModel.jackpotFormatted)
-        assertEquals("80 MIO", uiModel.jackpotBadgeFormatted)
+        assertEquals("80", uiModel.jackpotAmountValue)
+        assertEquals("MIO", uiModel.jackpotUnitValue)
 
         // Verify balls: 5 regular + 2 eurozahlen
         assertEquals(7, uiModel.balls.size)
@@ -110,7 +113,8 @@ class LotteryUiMapperTest {
         assertEquals("Fr., 18.09.2020", uiModel.formattedDrawDate)
         assertNull(uiModel.nextDrawBadgeText)
         assertNull(uiModel.jackpotFormatted)
-        assertNull(uiModel.jackpotBadgeFormatted)
+        assertNull(uiModel.jackpotAmountValue)
+        assertNull(uiModel.jackpotUnitValue)
         assertEquals(false, uiModel.hasJackpot)
         assertEquals(6, uiModel.balls.size)
     }

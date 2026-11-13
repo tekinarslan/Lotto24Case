@@ -1,5 +1,6 @@
 package de.lotto24case.domain.usecase
 
+import de.lotto24case.domain.model.Money
 import de.lotto24case.domain.model.Jackpot
 import de.lotto24case.domain.model.LotteryDraw
 import de.lotto24case.domain.model.LotteryResult
@@ -36,8 +37,8 @@ class GetLotteryResultsUseCaseTest {
             drawIdentifier = "2023-01-21",
             nextDrawDate = null,
             nextDrawIdentifier = null,
-            jackpot = Jackpot(amount = "6000000.00"),
-            totalStake = "1000.00",
+            jackpot = Jackpot(amount = Money.fromMajorUnitsString("6000000.00")),
+            totalStake = Money.fromMajorUnitsString("1000.00"),
             numbers = listOf(1, 2, 3, 4, 5, 6),
             superNumber = 7,
             supplementaryLotteries = emptyList()

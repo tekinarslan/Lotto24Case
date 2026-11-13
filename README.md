@@ -22,18 +22,22 @@ open docs/index.html
 
 ## Architectural Highlights & Engineering Decisions
 
-### 1. Pure Kotlin Clean Architecture
-* **Domain Layer (`:shared/domain`)**: Contains zero Android, Compose, or framework dependencies. Consists of pure Kotlin entities (`LotteryDraw`, `Jackpot`, `BallType`), repository contracts (`LotteryRepository`), and focused one-shot suspend use cases (`GetLotteryResultsUseCase`, `LoadFixtureResultsUseCase`).
+### 1. Pure Kotlin Clean Architecture & Domain Boundaries
+* **Domain Layer (`:shared/domain`)**: Contains zero Android, Compose, or framework dependencies. Consists of pure Kotlin entities (`LotteryDraw`, `Jackpot`), value objects (`Money`, `Currency`), repository contracts (`LotteryRepository`), and focused one-shot suspend use cases (`GetLotteryResultsUseCase`, `LoadFixtureResultsUseCase`).
+* **Semantic Money Value Object**: Money is modeled in domain as `Money(val minorUnits: Long, val currency: Currency = Currency.EUR)`. No floating-point Double precision errors and no localized German strings (`"MIO"`, `"€"`) exist in the domain layer.
 * **Single Source of Truth**: The domain model carries only the raw drawn numbers (`numbers`, `superNumber`, `euroNumbers`). Derived presentation lists (`balls: ImmutableList<BallUiModel>`) are generated strictly within the presentation mapper (`LotteryUiMapper`) to eliminate state duplication.
-* **Strict Presentation Decoupling**: UI models (`LotteryCardUiModel`, `BallUiModel`, `BallUiType`, `SupplementaryGameUiModel`) are fully separated from domain entities and annotated with `@Immutable` alongside `ImmutableList` for Compose recomposition stability.
-* **One-Shot Suspend over Unnecessary Flow**: Repository and UseCase retrieval functions are modeled as idiomatic `suspend fun` rather than wrapping one-shot REST operations into artificial `Flow` streams. Active `Job` cancellation on user retry/refresh eliminates duplicate network requests.
+* **Decoupled Presentation Layer & Formatters**:
+  * Localized German formatters (`CurrencyFormatter`, `LotteryDateTimeFormatter`) reside strictly in `presentation/formatter`.
+  * UI models (`LotteryCardUiModel`, `BallUiModel`, `BallUiType`, `SupplementaryGameUiModel`) are decoupled from domain types and annotated with `@Immutable` alongside `ImmutableList` for Compose stability.
+* **One-Shot Suspend over Unnecessary Flow**: Repository and UseCase retrieval operations are modeled as idiomatic `suspend fun` returning domain `LotteryResult`, rather than wrapping one-shot REST operations into artificial `Flow` streams.
+* **State-Driven Re-entrancy Protection**: `DrawResultsViewModel` protects against concurrent network calls during user interaction using a state-driven guard (`uiState.value !is DrawResultsUiState.Loading && !(uiState.value as? DrawResultsUiState.Success)?.isRefreshing`).
 
 ### 2. Data Provenance & In-Memory State Retention
 * **Explicit Outcome (`LotteryResult`)**:
   * `Success(data, isFixture)`: Identifies whether data came from the live network endpoint or sample PDF fixtures.
   * `Error(cause, statusCode, cachedData, isCachedDataFixture)`: Preserves previous session draws if a network failure occurs on refresh, enabling the UI to show an offline warning banner rather than wiping the screen.
-* **No Silent Fallbacks**: If the legacy endpoint returns HTTP 404 or fails, the application does **not** silently disguise 2023 fixture data as live results. An explicit error state is emitted, allowing the user to demand sample fixtures via a *"Beispieldaten laden"* button.
-* **Cache Provenance Preservation**: The session cache (`LotteryRepositoryImpl`) stores both data and origin (`CacheEntry(data, isFixture)`). If a user loads sample fixture data, subsequent cache reads retain `isFixture = true`, ensuring sample data is never mistaken for live winning numbers.
+* **No Silent Fallbacks & 404 Fixture Guards**: If the endpoint returns HTTP 404 or fails, the application does **not** silently disguise 2023 fixture data as live results. An explicit error state is emitted, and `canLoadFixture` is strictly guarded (`statusCode == 404`). For HTTP 500 or network offline errors, `canLoadFixture` is `false`.
+* **Cache Provenance Preservation**: The session cache (`LotteryRepositoryImpl`) stores both data and provenance (`CacheEntry(data, isFixture)`). If a user loads sample fixture data, subsequent cache reads without `forceRefresh` retain `isFixture = true`, ensuring sample fixtures are never reported as live winning numbers.
 
 ### 3. Timezone Awareness
 * Draw times and cutoffs operate in different native timezones:
@@ -41,10 +45,11 @@ open docs/index.html
   * **Eurojackpot**: `Europe/Helsinki` (UTC+2 / UTC+3 DST)
 * The domain model preserves native timezone identifiers (`draw.timeZone`), and `LotteryUiMapper` explicitly resolves the target zone via `LotteryDateTimeFormatter.resolveTimeZone()`. This prevents UTC day-boundary errors (e.g. draws occurring at 22:30 UTC on Friday are Saturday in Helsinki but Friday in Berlin).
 
-### 4. Unidirectional Data Flow (UDF) & Koin DI
-* `DrawResultsViewModel` exposes a single `StateFlow<DrawResultsUiState>` (`Loading`, `Success`, `Error`).
-* **Active Job Guards**: Pull-to-refresh and manual retry cancel active in-flight coroutines (`fetchJob?.cancel()`) to prevent parallel execution and race conditions.
-* **Koin 4.x ViewModel DSL**: Registered with `viewModelOf(::DrawResultsViewModel)` in `PresentationModule`.
+### 4. Dependency Injection (Koin 4.x)
+* Multiplatform Koin modules: `networkModule`, `dataModule`, `domainModule`, `presentationModule`.
+* ViewModel registered using Koin multiplatform ViewModel DSL: `viewModelOf(::DrawResultsViewModel)`.
+* **Android**: `Lotto24Application` initializes Koin with `androidContext` and `androidLogger`.
+* **iOS**: `MainViewController()` in `iosMain` initializes Koin idempotently via `initKoin()` using Koin's internal `GlobalContext.getOrNull()`, ensuring zero stale mutable state flags across test teardowns or multiple invocations.
 
 ---
 
@@ -52,16 +57,18 @@ open docs/index.html
 
 | Component | Library / Framework | Version |
 | :--- | :--- | :--- |
-| **Language** | Kotlin Multiplatform | `2.1.20-RC` / `2.1.0` |
-| **UI Framework** | Compose Multiplatform (CMP) | `1.8.0-alpha01` |
-| **Dependency Injection** | Koin Core & ViewModel Compose | `4.0.2` |
-| **Networking** | Ktor Client (ContentNegotiation, Logging, Timeouts) | `3.1.1` |
-| **Serialization** | kotlinx-serialization-json | `1.8.0` |
-| **Date & Time** | kotlinx-datetime | `0.6.2` |
-| **Immutable Collections** | kotlinx-collections-immutable | `0.3.8` |
-| **Reactive Streams** | kotlinx-coroutines | `1.10.1` |
-| **Testing** | kotlin-test, Turbine, Coroutines Test | `1.2.0` |
-| **Android AppWidget** | Jetpack Glance | `1.1.1` |
+| **Language** | Kotlin Multiplatform | `2.4.21` |
+| **UI Framework** | Compose Multiplatform (CMP) | `1.12.2` |
+| **Android Gradle Plugin** | AGP | `9.5.1` |
+| **Compile / Target SDK** | Android SDK | `37` (Min SDK `28`) |
+| **Dependency Injection** | Koin Core, Koin Android & Koin Compose | `4.2.2` |
+| **Networking** | Ktor Client (ContentNegotiation, Logging, Timeouts) | `3.6.1` |
+| **Serialization** | kotlinx-serialization-json | `1.13.0` |
+| **Date & Time** | kotlinx-datetime | `0.8.0` |
+| **Immutable Collections** | kotlinx-collections-immutable | `0.5.2` |
+| **Reactive Streams** | kotlinx-coroutines | `1.11.0` |
+| **Testing** | kotlin-test, Turbine, Coroutines Test | `1.2.1` |
+| **Android AppWidget** | Jetpack Glance | `1.2.0` |
 
 ---
 
@@ -69,9 +76,12 @@ open docs/index.html
 
 ```
 ├── androidApp/                       # Android application module (launcher, Glance AppWidget)
-├── docs/                             # Interactive HTML documentation dashboard
+│   └── src/main/kotlin/de/lotto24case/
+│       ├── Lotto24Application.kt     # Application entrypoint with Koin init
+│       └── MainActivity.kt           # Edge-to-edge Compose host activity
+├── docs/                             # Interactive HTML documentation suite
 │   ├── index.html                    # Dashboard single-page app
-│   ├── requirements.html             # PDF requirements transcript
+│   ├── requirements.html             # Verbatim PDF requirements transcript
 │   ├── tech-stack.html               # Technical stack documentation
 │   └── roadmap.html                  # Live phase tracking
 ├── shared/
@@ -80,20 +90,24 @@ open docs/index.html
 │   │   │   ├── mapper/               # DTO to Domain mappers (LotteryDtoMapper)
 │   │   │   ├── remote/               # Ktor client, DTOs, fixtures, LotteryDataResult
 │   │   │   └── repository/           # LotteryRepositoryImpl (in-memory cache & provenance)
-│   │   ├── di/                       # Koin modules (Network, Data, Domain, Presentation)
+│   │   ├── di/                       # Koin modules (Network, Data, Domain, Presentation, AppModule)
 │   │   ├── domain/
-│   │   │   ├── model/                # Pure Kotlin entities (LotteryDraw, Jackpot, BallType, LotteryResult)
-│   │   │   ├── repository/           # LotteryRepository abstraction
-│   │   │   ├── usecase/              # GetLotteryResultsUseCase, LoadFixtureResultsUseCase
-│   │   │   └── util/                 # CurrencyFormatter, LotteryDateTimeFormatter
+│   │   │   ├── model/                # Pure Kotlin entities (LotteryDraw, Jackpot, Money, Currency, LotteryResult)
+│   │   │   ├── repository/           # LotteryRepository abstraction (suspend API)
+│   │   │   └── usecase/              # GetLotteryResultsUseCase, LoadFixtureResultsUseCase
 │   │   └── presentation/
+│   │       ├── formatter/            # CurrencyFormatter (Money -> MIO €), LotteryDateTimeFormatter
 │   │       ├── mapper/               # Domain to UI mappers (LotteryUiMapper)
 │   │       ├── model/                # Stable UI models (LotteryCardUiModel, BallUiModel, BallUiType)
 │   │       ├── state/                # DrawResultsUiState (Loading, Success, Error)
-│   │       ├── theme/                # Design system colors, typography, shapes
-│   │       ├── ui/                   # Compose atomic components (LotteryBall, LotteryCard, Badges)
-│   │       └── viewmodel/            # DrawResultsViewModel with UDF
-│   └── src/commonTest/kotlin/        # 41 unit tests covering domain, data, formatters, and ViewModel
+│   │       ├── theme/                # Aura Lotto Design System (AuraColors, AuraTypography, AuraSpacing)
+│   │       ├── ui/
+│   │       │   ├── component/        # Atomic components (LotteryBall, JackpotBadge, NextDrawPill, LotteryCard)
+│   │       │   ├── preview/          # Light and Dark Compose previews
+│   │       │   └── screen/           # DrawResultsScreen (Pull-to-refresh, cards, error/fixture actions)
+│   │       └── viewmodel/            # DrawResultsViewModel (UDF, state guard, 404 checks)
+│   ├── src/iosMain/kotlin/           # iOS MainViewController with idempotent Koin init
+│   └── src/commonTest/kotlin/        # Unit test suite covering domain, data, formatters, and ViewModel
 ```
 
 ---
@@ -104,10 +118,10 @@ open docs/index.html
 ```bash
 ./gradlew :shared:testAndroidHostTest
 ```
-*Current test suite: **41 unit tests passing**, covering:*
-* `LotteryRepositoryImplTest`: live fetch, in-memory caching, force refresh, 404 error, network loss retention, and provenance preservation across cache hits.
-* `DrawResultsViewModelTest`: initial loading, live success, pull-to-refresh flags, `canLoadFixture` guards (true for 404, false for 500/offline), and in-flight job cancellation.
-* `LotteryUiMapperTest`: 6aus49 ball derivation, Eurojackpot euro numbers, Helsinki vs Berlin timezone boundary mapping, and null safety.
+*Current test suite: **46 unit tests passing** (verified via `./gradlew :shared:testAndroidHostTest --rerun-tasks`), covering:*
+* `LotteryRepositoryImplTest`: live fetch, in-memory caching, force refresh, 404 error handling, network loss retention, and provenance preservation across cache hits.
+* `DrawResultsViewModelTest`: initial loading, live success, pull-to-refresh flags, `canLoadFixture` guards (`true` strictly for 404, `false` for 500 and offline errors), and re-entrancy protection.
+* `LotteryUiMapperTest`: LOTTO 6aus49 ball derivation, Eurojackpot euro numbers, Helsinki vs Berlin timezone boundary mapping, and null safety.
 * `CurrencyFormatterTest`: German millions formatting (`"80 MIO €"`), badge formatting (`"80 MIO"`), German decimal commas (`"1,5 MIO €"`), sub-millions (`"950.000 €"`), and safe fallbacks.
 * `LotteryDateTimeFormatterTest`: German weekday abbreviations, leap year handling, and timezone day boundaries.
 * `KoinModuleTest`: automated dependency graph resolution validation.
@@ -117,13 +131,18 @@ open docs/index.html
 ./gradlew :androidApp:assembleDebug
 ```
 
+### Compiling Shared Code for iOS
+```bash
+./gradlew :shared:compileKotlinIosSimulatorArm64
+```
+
 ---
 
 ## Discussion Points & Architectural Trade-offs
 
 1. **In-Memory Cache vs. SQLite (Room / SQLDelight):**
-   * *Decision:* For an app querying two lottery draw cards, an SQLite database introduces unnecessary schema migrations, disk I/O, and driver overhead. An in-memory cache retaining the session's latest successful result fully solves the offline requirement (refresh failure keeps showing existing numbers with a warning banner) without persistent disk bloat.
-2. **Explicit Fixture Fallback on 404:**
+   * *Decision:* For an app querying two lottery draw cards, an SQLite database introduces unnecessary schema migrations, disk I/O, and driver overhead. An in-memory cache retaining the session's latest successful result fully satisfies the offline requirement (refresh failure keeps showing existing numbers with a warning banner) without persistent disk bloat.
+2. **Explicit Fixture Fallback strictly on 404:**
    * *Decision:* Silent fallback to 2023 sample data is hazardous in lottery apps, where users verify actual monetary tickets. On 404, the app explicitly communicates the status and offers a user-initiated button to load sample data with a clear banner.
-3. **Decoupled Presentation Models:**
-   * *Decision:* Domain entities do not import `@Immutable` or Compose dependencies. UI models are independently defined and stable, preserving clean architectural boundaries.
+3. **Decoupled Presentation Models & Value Objects:**
+   * *Decision:* Domain entities do not import `@Immutable` or Compose dependencies. Value objects like `Money` encapsulate financial integrity, while presentation formatters handle localized rendering (`"MIO"`, `"€"`).

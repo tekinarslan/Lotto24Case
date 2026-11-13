@@ -2,8 +2,9 @@ package de.lotto24case.presentation.mapper
 
 import de.lotto24case.domain.model.LotteryDraw
 import de.lotto24case.domain.model.LotteryType
-import de.lotto24case.domain.util.CurrencyFormatter
-import de.lotto24case.domain.util.LotteryDateTimeFormatter
+import de.lotto24case.domain.model.Money
+import de.lotto24case.presentation.formatter.CurrencyFormatter
+import de.lotto24case.presentation.formatter.LotteryDateTimeFormatter
 import de.lotto24case.presentation.model.BallUiModel
 import de.lotto24case.presentation.model.BallUiType
 import de.lotto24case.presentation.model.LotteryCardUiModel
@@ -13,15 +14,10 @@ import kotlinx.collections.immutable.toPersistentList
 
 /**
  * Maps pure Kotlin domain models ([LotteryDraw]) into stable Compose UI models ([LotteryCardUiModel]).
- *
- * Clean Architecture enforcement:
- * - Domain layer is completely decoupled from presentation models.
- * - [BallUiType] and [SupplementaryGameUiModel] are UI-owned types.
- * - Timezone from domain ([LotteryDraw.timeZone]) is explicitly resolved and passed to formatters,
- *   ensuring Eurojackpot (Europe/Helsinki) and 6aus49 (Europe/Berlin) are rendered in their native draw zones.
- * - Single Source of Truth: ball list is derived directly here rather than duplicated in domain.
  */
 object LotteryUiMapper {
+
+    private const val CENTS_PER_MILLION = 100_000_000L
 
     /**
      * Maps a list of domain draws into a list of UI card models.
@@ -39,16 +35,42 @@ object LotteryUiMapper {
             LotteryType.EUROJACKPOT -> "Eurojackpot"
         }
 
-        // Explicitly respect lottery-specific timezone (e.g. Helsinki for Eurojackpot, Berlin for 6aus49)
-        val timeZone = LotteryDateTimeFormatter.resolveTimeZone(draw.timeZone)
+        // Resolve API timezone, with fallback per lottery rules
+        val fallbackZone = when (draw.lotteryType) {
+            LotteryType.LOTTO_6AUS49 -> LotteryDateTimeFormatter.TIMEZONE_BERLIN
+            LotteryType.EUROJACKPOT -> LotteryDateTimeFormatter.TIMEZONE_HELSINKI
+        }
+        val timeZone = if (!draw.timeZone.isNullOrBlank()) {
+            LotteryDateTimeFormatter.resolveTimeZone(draw.timeZone)
+        } else {
+            fallbackZone
+        }
+
         val formattedDate = LotteryDateTimeFormatter.formatDrawDate(draw.drawDate, timeZone) ?: "–"
-        val nextDrawBadge = LotteryDateTimeFormatter.formatNextDraw(draw.nextDrawDate, timeZone)
-        val jackpotAmount = draw.jackpot?.amount
-        val formattedJackpot = CurrencyFormatter.formatJackpot(jackpotAmount)
-        val jackpotBadge = CurrencyFormatter.formatBadgeMio(jackpotAmount)
+
+        // Next draw date badge text
+        val nextDrawBadgeText = LotteryDateTimeFormatter.formatNextDraw(draw.nextDrawDate, timeZone)
+
+        // Deterministic remaining interval between drawDate and nextDrawDate
+        val remainingTimeText = LotteryDateTimeFormatter.formatRemainingTime(
+            nextDrawDate = draw.nextDrawDate,
+            drawDate = draw.drawDate
+        )
+
+        val jackpotMoney = draw.jackpot?.amount
+        val formattedJackpot = CurrencyFormatter.formatJackpot(jackpotMoney)
+        val (jackpotAmountVal, jackpotUnitVal) = formatAnchorJackpot(jackpotMoney)
+
+        var superNumberValue: Int? = null
+        val mainBallsLabel: String
+        val specialBallLabel: String?
 
         val (balls, supplementaryGames) = when (draw) {
             is LotteryDraw.Lotto6aus49 -> {
+                superNumberValue = draw.superNumber
+                mainBallsLabel = "GEWINNZAHLEN"
+                specialBallLabel = draw.superNumber?.let { "Superzahl: $it" }
+
                 val ballList = buildList {
                     draw.numbers.forEach { number ->
                         add(BallUiModel(number = number, type = BallUiType.REGULAR))
@@ -68,6 +90,9 @@ object LotteryUiMapper {
                 ballList to games
             }
             is LotteryDraw.Eurojackpot -> {
+                mainBallsLabel = "5 GEWINNZAHLEN"
+                specialBallLabel = "2 EUROZAHLEN"
+
                 val ballList = buildList {
                     draw.numbers.forEach { number ->
                         add(BallUiModel(number = number, type = BallUiType.REGULAR))
@@ -86,12 +111,28 @@ object LotteryUiMapper {
             lotteryType = draw.lotteryType,
             title = title,
             formattedDrawDate = formattedDate,
-            nextDrawBadgeText = nextDrawBadge,
+            nextDrawBadgeText = nextDrawBadgeText,
+            remainingTimeText = remainingTimeText,
             jackpotFormatted = formattedJackpot,
-            jackpotBadgeFormatted = jackpotBadge,
+            jackpotAmountValue = jackpotAmountVal,
+            jackpotUnitValue = jackpotUnitVal,
+            mainBallsLabel = mainBallsLabel,
+            specialBallLabel = specialBallLabel,
             balls = balls,
+            superNumber = superNumberValue,
             supplementaryGames = supplementaryGames,
             hasJackpot = draw.jackpot?.hasAmount == true
         )
+    }
+
+    private fun formatAnchorJackpot(money: Money?): Pair<String?, String?> {
+        if (money == null || money.minorUnits <= 0L) return null to null
+        return if (money.minorUnits >= CENTS_PER_MILLION) {
+            val millions = (money.minorUnits / CENTS_PER_MILLION).toString()
+            millions to "MIO"
+        } else {
+            val thousands = (money.minorUnits / 100_000L).toString()
+            thousands to "Tsd"
+        }
     }
 }

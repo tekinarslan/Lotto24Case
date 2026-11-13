@@ -6,7 +6,8 @@ import kotlin.time.Instant
  * Polymorphic representation of a lottery draw result in the domain layer.
  *
  * Adheres to pure Kotlin Clean Architecture principles:
- * - Zero UI or Compose framework dependencies
+ * - Zero UI, localized strings, or Compose framework dependencies
+ * - Domain models store purely semantic values: [Money], [Instant], raw drawn numbers
  * - Single Source of Truth: does not duplicate drawn numbers into display lists
  * - Strictly differentiates 6aus49 (superNumber) from Eurojackpot (euroNumbers)
  */
@@ -18,8 +19,7 @@ sealed interface LotteryDraw {
     val nextDrawIdentifier: String?
     val timeZone: String?
     val jackpot: Jackpot?
-    val totalStake: String?
-    val currency: String
+    val totalStake: Money?
     val numbers: List<Int>
 
     /**
@@ -37,8 +37,7 @@ sealed interface LotteryDraw {
         override val nextDrawIdentifier: String?,
         override val timeZone: String? = "Europe/Berlin",
         override val jackpot: Jackpot?,
-        override val totalStake: String?,
-        override val currency: String = "EUR",
+        override val totalStake: Money?,
         override val numbers: List<Int>,
         val superNumber: Int?,
         val supplementaryLotteries: List<SupplementaryLottery> = emptyList()
@@ -60,8 +59,7 @@ sealed interface LotteryDraw {
         override val nextDrawIdentifier: String?,
         override val timeZone: String? = "Europe/Helsinki",
         override val jackpot: Jackpot?,
-        override val totalStake: String?,
-        override val currency: String = "EUR",
+        override val totalStake: Money?,
         override val numbers: List<Int>,
         val euroNumbers: List<Int>
     ) : LotteryDraw {

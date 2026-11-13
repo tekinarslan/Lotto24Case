@@ -1,4 +1,4 @@
-package de.lotto24case.domain.util
+package de.lotto24case.presentation.formatter
 
 import kotlinx.datetime.TimeZone
 import kotlin.test.Test

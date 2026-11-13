@@ -6,8 +6,10 @@ import de.lotto24case.data.remote.dto.JackpotDto
 import de.lotto24case.data.remote.dto.LastDrawDto
 import de.lotto24case.data.remote.dto.LotteryResponseDto
 import de.lotto24case.data.remote.dto.NextDrawDto
+import de.lotto24case.domain.model.Currency
 import de.lotto24case.domain.model.LotteryDraw
 import de.lotto24case.domain.model.LotteryType
+import de.lotto24case.domain.model.Money
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -104,9 +106,9 @@ class LotteryDtoMapperTest {
         assertEquals(LotteryType.LOTTO_6AUS49, lotto6aus49.lotteryType)
         assertEquals(listOf(4, 19, 24, 43, 44, 45), lotto6aus49.numbers)
         assertEquals(7, lotto6aus49.superNumber)
-        assertEquals("6000000.00", lotto6aus49.jackpot?.amount)
+        assertEquals(Money.fromMajorUnits(6_000_000L), lotto6aus49.jackpot?.amount)
         assertTrue(lotto6aus49.jackpot?.hasAmount == true)
-        assertEquals("44712847.20", lotto6aus49.totalStake)
+        assertEquals(Money.fromMajorUnitsString("44712847.20"), lotto6aus49.totalStake)
         // If not in payload, no hardcoded values are injected
         assertTrue(lotto6aus49.supplementaryLotteries.isEmpty())
 
@@ -116,32 +118,9 @@ class LotteryDtoMapperTest {
         assertEquals(LotteryType.EUROJACKPOT, eurojackpot.lotteryType)
         assertEquals(listOf(1, 12, 15, 31, 47), eurojackpot.numbers)
         assertEquals(listOf(9, 10), eurojackpot.euroNumbers)
-        assertEquals("80000000.00", eurojackpot.jackpot?.amount)
+        assertEquals(Money.fromMajorUnits(80_000_000L), eurojackpot.jackpot?.amount)
         assertTrue(eurojackpot.jackpot?.hasAmount == true)
-        assertEquals("54340762.00", eurojackpot.totalStake)
-    }
-
-    @Test
-    fun `maps unsupported or null jackpot correctly`() {
-        val dto = LotteryResponseDto(
-            lottery = "6aus49",
-            lastDraw = LastDrawDto(
-                drawIdentifier = "2023-01-21",
-                drawDateUtc = "2023-01-21T18:25:00Z",
-                drawResult = DrawResultDto(numbers = listOf(1, 2, 3, 4, 5, 6))
-            ),
-            nextDraw = NextDrawDto(
-                jackpot = JackpotDto(
-                    jackpotSupported = false,
-                    jackpots = emptyMap()
-                )
-            )
-        )
-
-        val draw = LotteryDtoMapper.mapSingle(dto) as? LotteryDraw.Lotto6aus49
-        assertNotNull(draw)
-        assertEquals(false, draw.jackpot?.isSupported)
-        assertEquals(false, draw.jackpot?.hasAmount)
+        assertEquals(Money.fromMajorUnitsString("54340762.00"), eurojackpot.totalStake)
     }
 
     @Test
@@ -167,6 +146,29 @@ class LotteryDtoMapperTest {
         assertEquals("7312244", draw.supplementaryLotteries[0].winningNumber)
         assertEquals("SUPER6", draw.supplementaryLotteries[1].name)
         assertEquals("112430", draw.supplementaryLotteries[1].winningNumber)
+    }
+
+    @Test
+    fun `maps unsupported or null jackpot correctly`() {
+        val dto = LotteryResponseDto(
+            lottery = "6aus49",
+            lastDraw = LastDrawDto(
+                drawIdentifier = "2023-01-21",
+                drawDateUtc = "2023-01-21T18:25:00Z",
+                drawResult = DrawResultDto(numbers = listOf(1, 2, 3, 4, 5, 6))
+            ),
+            nextDraw = NextDrawDto(
+                jackpot = JackpotDto(
+                    jackpotSupported = false,
+                    jackpots = emptyMap()
+                )
+            )
+        )
+
+        val draw = LotteryDtoMapper.mapSingle(dto) as? LotteryDraw.Lotto6aus49
+        assertNotNull(draw)
+        assertEquals(false, draw.jackpot?.isSupported)
+        assertEquals(false, draw.jackpot?.hasAmount)
     }
 
     @Test

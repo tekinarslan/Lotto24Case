@@ -1,17 +1,19 @@
-package de.lotto24case.domain.util
+package de.lotto24case.presentation.formatter
 
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Duration
 import kotlin.time.Instant
 
 /**
- * Utility for formatting lottery draw dates according to German locale standards.
+ * Presentation-layer utility for formatting lottery draw dates according to German locale standards.
  *
- * Output examples from UX mockup:
- * - "Fr., 18.09.2020"
- * - "Mi., 23.09.2020"
- * - "Nächste Ziehung: Mi., 23.09.2020"
+ * Requirements:
+ * - Output format: "Fr., 18.09.2020", "Mi., 23.09.2020"
+ * - Badge output: "Nächste Ziehung: Mi., 23.09.2020"
+ * - Dynamic remaining interval between draw and next draw: "X Tage Y Std." (e.g. "3 Tage 23 Std.")
+ * - Domain never holds presentation strings.
  */
 object LotteryDateTimeFormatter {
 
@@ -20,10 +22,6 @@ object LotteryDateTimeFormatter {
 
     /**
      * Formats an [Instant] into German draw date notation (e.g. "Fr., 18.09.2020").
-     *
-     * @param instant The timestamp of the draw.
-     * @param timeZone Target timezone (defaults to Europe/Berlin).
-     * @return Formatted string, or null if instant is null.
      */
     fun formatDrawDate(
         instant: Instant?,
@@ -48,6 +46,43 @@ object LotteryDateTimeFormatter {
     ): String? {
         val formattedDate = formatDrawDate(instant, timeZone) ?: return null
         return "Nächste Ziehung: $formattedDate"
+    }
+
+    /**
+     * Calculates the remaining duration until the next draw as German interval pill text:
+     * e.g. "3 Tage 23 Std.", "4 Tage 18 Std.", "14 Std. 30 Min."
+     *
+     * Calculated deterministically from API timestamps (nextDrawDate - drawDate) without runtime tickers.
+     */
+    fun formatRemainingTime(
+        nextDrawDate: Instant?,
+        drawDate: Instant?
+    ): String? {
+        if (nextDrawDate == null || drawDate == null) return null
+        if (nextDrawDate <= drawDate) return null
+
+        val duration: Duration = nextDrawDate - drawDate
+        val totalSeconds = duration.inWholeSeconds
+        if (totalSeconds <= 0) return null
+
+        val days = totalSeconds / 86400
+        val remainingSeconds = totalSeconds % 86400
+        val hours = remainingSeconds / 3600
+        val minutes = (remainingSeconds % 3600) / 60
+
+        return when {
+            days > 0 -> {
+                val dayWord = if (days == 1L) "Tag" else "Tage"
+                if (hours > 0) "$days $dayWord $hours Std." else "$days $dayWord"
+            }
+            hours > 0 -> {
+                if (minutes > 0) "$hours Std. $minutes Min." else "$hours Std."
+            }
+            else -> {
+                val safeMinutes = minutes.coerceAtLeast(1)
+                "$safeMinutes Min."
+            }
+        }
     }
 
     /**
