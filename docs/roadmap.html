@@ -75,17 +75,19 @@
     <div class="checklist-item">✓ Explicit fixture fallback: 404 does not silently return sample data; explicit <code>loadFixtureResults()</code> endpoint wired for user demand</div>
     <div class="checklist-item">✓ <code>LotteryRepositoryImpl</code> with thread-safe session cache and forceRefresh logic</div>
     <div class="checklist-item">✓ Full Koin multiplatform DI setup (<code>networkModule</code>, <code>dataModule</code>, <code>domainModule</code>, <code>initKoin</code>)</div>
-    <div class="checklist-item">✓ Unit tests passing: <code>LotteryRepositoryImplTest</code> (6/6), <code>GetLotteryResultsUseCaseTest</code> (3/3), <code>KoinModuleTest</code> (1/1)</div>
+    <div class="checklist-item">✓ Unit tests passing: <code>LotteryRepositoryImplTest</code> (7/7), <code>GetLotteryResultsUseCaseTest</code> (3/3), <code>KoinModuleTest</code> (1/1)</div>
   </div>
 
   <div class="phase-card">
     <div class="phase-header">
-      <span class="phase-title">Phase 6: ViewModel & Unidirectional Data Flow</span>
-      <span class="pill pill-pending">Pending</span>
+      <span class="phase-title">Phase 6: ViewModel & Unidirectional Data Flow (UI State)</span>
+      <span class="pill pill-done">Completed</span>
     </div>
-    <div class="checklist-item">○ <code>DrawResultsUiState</code> with <code>ImmutableList</code> for stability</div>
-    <div class="checklist-item">○ <code>DrawResultsViewModel</code> with <code>StateFlow</code> and pull-to-refresh</div>
-    <div class="checklist-item">○ ViewModel testing with <strong>Turbine</strong> and Coroutines Test</div>
+    <div class="checklist-item">✓ <code>DrawResultsUiState</code> (Loading, Success, Error) with <code>ImmutableList</code> for Compose stability</div>
+    <div class="checklist-item">✓ Strict Clean Architecture: decoupled presentation models (<code>BallUiType</code>, <code>SupplementaryGameUiModel</code>)</div>
+    <div class="checklist-item">✓ Timezone provenance: domain carries native draw timezones (Berlin / Helsinki) passed to UI date formatters</div>
+    <div class="checklist-item">✓ <code>DrawResultsViewModel</code> with Job cancellation guard, <code>canLoadFixture</code> strictly for 404, and Koin <code>viewModelOf</code></div>
+    <div class="checklist-item">✓ Unit tests passing: <code>DrawResultsViewModelTest</code> (5/5 with 404 vs 500 fixture guards), <code>LotteryUiMapperTest</code> (3/3 with Helsinki boundary test)</div>
   </div>
 
   <div class="phase-card">

@@ -1,6 +1,5 @@
 package de.lotto24case.data.repository
 
-import app.cash.turbine.test
 import de.lotto24case.data.remote.api.Lotto24ApiService
 import de.lotto24case.data.remote.dto.DrawResultDto
 import de.lotto24case.data.remote.dto.LastDrawDto
@@ -56,13 +55,10 @@ class LotteryRepositoryImplTest {
         }
         val repository = LotteryRepositoryImpl(fakeApi, testDispatcher)
 
-        repository.getDrawResults(forceRefresh = false).test {
-            val item = awaitItem()
-            assertTrue(item is LotteryResult.Success)
-            assertEquals(1, item.data.size)
-            assertEquals(false, item.isFixture)
-            awaitComplete()
-        }
+        val item = repository.getDrawResults(forceRefresh = false)
+        assertTrue(item is LotteryResult.Success)
+        assertEquals(1, item.data.size)
+        assertEquals(false, item.isFixture)
 
         assertEquals(1, fakeApi.fetchCallCount)
         assertNotNull(repository.currentCachedData())
@@ -78,19 +74,13 @@ class LotteryRepositoryImplTest {
         val repository = LotteryRepositoryImpl(fakeApi, testDispatcher)
 
         // First call fetches from network
-        repository.getDrawResults(forceRefresh = false).test {
-            awaitItem()
-            awaitComplete()
-        }
+        repository.getDrawResults(forceRefresh = false)
         assertEquals(1, fakeApi.fetchCallCount)
 
         // Second call with forceRefresh = false serves from memory cache
-        repository.getDrawResults(forceRefresh = false).test {
-            val item = awaitItem()
-            assertTrue(item is LotteryResult.Success)
-            assertEquals(1, item.data.size)
-            awaitComplete()
-        }
+        val item = repository.getDrawResults(forceRefresh = false)
+        assertTrue(item is LotteryResult.Success)
+        assertEquals(1, item.data.size)
         // Network call count must NOT increase
         assertEquals(1, fakeApi.fetchCallCount)
     }
@@ -104,17 +94,11 @@ class LotteryRepositoryImplTest {
         val repository = LotteryRepositoryImpl(fakeApi, testDispatcher)
 
         // Initial fetch
-        repository.getDrawResults(forceRefresh = false).test {
-            awaitItem()
-            awaitComplete()
-        }
+        repository.getDrawResults(forceRefresh = false)
         assertEquals(1, fakeApi.fetchCallCount)
 
         // Pull to refresh forces remote call
-        repository.getDrawResults(forceRefresh = true).test {
-            awaitItem()
-            awaitComplete()
-        }
+        repository.getDrawResults(forceRefresh = true)
         assertEquals(2, fakeApi.fetchCallCount)
     }
 
@@ -129,13 +113,10 @@ class LotteryRepositoryImplTest {
         }
         val repository = LotteryRepositoryImpl(fakeApi, testDispatcher)
 
-        repository.getDrawResults(forceRefresh = false).test {
-            val item = awaitItem()
-            assertTrue(item is LotteryResult.Error)
-            assertEquals(404, item.statusCode)
-            assertNull(item.cachedData)
-            awaitComplete()
-        }
+        val item = repository.getDrawResults(forceRefresh = false)
+        assertTrue(item is LotteryResult.Error)
+        assertEquals(404, item.statusCode)
+        assertNull(item.cachedData)
     }
 
     @Test
@@ -147,11 +128,8 @@ class LotteryRepositoryImplTest {
         val repository = LotteryRepositoryImpl(fakeApi, testDispatcher)
 
         // 1. Initial successful fetch
-        repository.getDrawResults(forceRefresh = false).test {
-            val item = awaitItem()
-            assertTrue(item is LotteryResult.Success)
-            awaitComplete()
-        }
+        val item1 = repository.getDrawResults(forceRefresh = false)
+        assertTrue(item1 is LotteryResult.Success)
 
         // 2. Network disconnects (e.g. offline on pull-to-refresh)
         fakeApi.apiResultToReturn = LotteryDataResult.Error(
@@ -159,14 +137,11 @@ class LotteryRepositoryImplTest {
             statusCode = null
         )
 
-        repository.getDrawResults(forceRefresh = true).test {
-            val item = awaitItem()
-            assertTrue(item is LotteryResult.Error)
-            // Crucial: UI receives previous cachedData to display offline warning banner!
-            assertNotNull(item.cachedData)
-            assertEquals(1, item.cachedData.size)
-            awaitComplete()
-        }
+        val item2 = repository.getDrawResults(forceRefresh = true)
+        assertTrue(item2 is LotteryResult.Error)
+        // Crucial: UI receives previous cachedData to display offline warning banner!
+        assertNotNull(item2.cachedData)
+        assertEquals(1, item2.cachedData.size)
     }
 
     @Test
@@ -177,13 +152,10 @@ class LotteryRepositoryImplTest {
         }
         val repository = LotteryRepositoryImpl(fakeApi, testDispatcher)
 
-        repository.loadFixtureResults().test {
-            val item = awaitItem()
-            assertTrue(item is LotteryResult.Success)
-            assertTrue(item.isFixture)
-            assertEquals(1, item.data.size)
-            awaitComplete()
-        }
+        val item = repository.loadFixtureResults()
+        assertTrue(item is LotteryResult.Success)
+        assertTrue(item.isFixture)
+        assertEquals(1, item.data.size)
 
         assertEquals(1, fakeApi.fixtureCallCount)
         assertNotNull(repository.currentCachedData())
@@ -199,34 +171,25 @@ class LotteryRepositoryImplTest {
         val repository = LotteryRepositoryImpl(fakeApi, testDispatcher)
 
         // 1. User explicitly loads fixture
-        repository.loadFixtureResults().test {
-            val item = awaitItem()
-            assertTrue(item is LotteryResult.Success)
-            assertTrue(item.isFixture)
-            awaitComplete()
-        }
+        val item = repository.loadFixtureResults()
+        assertTrue(item is LotteryResult.Success)
+        assertTrue(item.isFixture)
 
         // 2. Later, app or screen requests draw results without forceRefresh
-        repository.getDrawResults(forceRefresh = false).test {
-            val cachedItem = awaitItem()
-            assertTrue(cachedItem is LotteryResult.Success)
-            // MUST PRESERVE isFixture = true! It must NOT falsely claim to be live!
-            assertTrue(cachedItem.isFixture, "Cache hit must preserve isFixture = true to avoid spoofing live data")
-            assertEquals(1, cachedItem.data.size)
-            awaitComplete()
-        }
+        val cachedItem = repository.getDrawResults(forceRefresh = false)
+        assertTrue(cachedItem is LotteryResult.Success)
+        // MUST PRESERVE isFixture = true! It must NOT falsely claim to be live!
+        assertTrue(cachedItem.isFixture, "Cache hit must preserve isFixture = true to avoid spoofing live data")
+        assertEquals(1, cachedItem.data.size)
 
         // 3. Network fails on a subsequent refresh: error must also indicate cached data is fixture!
         fakeApi.apiResultToReturn = LotteryDataResult.Error(
             cause = IllegalStateException("Network unreachable"),
             statusCode = 503
         )
-        repository.getDrawResults(forceRefresh = true).test {
-            val errorItem = awaitItem()
-            assertTrue(errorItem is LotteryResult.Error)
-            assertNotNull(errorItem.cachedData)
-            assertTrue(errorItem.isCachedDataFixture, "Cached data in error must indicate it is fixture data")
-            awaitComplete()
-        }
+        val errorItem = repository.getDrawResults(forceRefresh = true)
+        assertTrue(errorItem is LotteryResult.Error)
+        assertNotNull(errorItem.cachedData)
+        assertTrue(errorItem.isCachedDataFixture, "Cached data in error must indicate it is fixture data")
     }
 }

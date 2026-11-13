@@ -1,12 +1,9 @@
 package de.lotto24case.domain.usecase
 
-import app.cash.turbine.test
 import de.lotto24case.domain.model.Jackpot
 import de.lotto24case.domain.model.LotteryDraw
 import de.lotto24case.domain.model.LotteryResult
 import de.lotto24case.domain.repository.LotteryRepository
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -21,14 +18,14 @@ class GetLotteryResultsUseCaseTest {
         var lastForceRefresh: Boolean? = null
         var fixtureLoadCalled: Boolean = false
 
-        override fun getDrawResults(forceRefresh: Boolean): Flow<LotteryResult> {
+        override suspend fun getDrawResults(forceRefresh: Boolean): LotteryResult {
             lastForceRefresh = forceRefresh
-            return flowOf(result)
+            return result
         }
 
-        override fun loadFixtureResults(): Flow<LotteryResult> {
+        override suspend fun loadFixtureResults(): LotteryResult {
             fixtureLoadCalled = true
-            return flowOf(result)
+            return result
         }
     }
 
@@ -49,14 +46,11 @@ class GetLotteryResultsUseCaseTest {
         val fakeRepo = FakeLotteryRepository(LotteryResult.Success(expectedList))
         val useCase = GetLotteryResultsUseCase(fakeRepo)
 
-        useCase(forceRefresh = true).test {
-            val emission = awaitItem()
-            assertTrue(emission is LotteryResult.Success)
-            assertEquals(expectedList, emission.data)
-            assertEquals(false, emission.isFixture)
-            assertEquals(true, fakeRepo.lastForceRefresh)
-            awaitComplete()
-        }
+        val emission = useCase(forceRefresh = true)
+        assertTrue(emission is LotteryResult.Success)
+        assertEquals(expectedList, emission.data)
+        assertEquals(false, emission.isFixture)
+        assertEquals(true, fakeRepo.lastForceRefresh)
     }
 
     @Test
@@ -71,14 +65,11 @@ class GetLotteryResultsUseCaseTest {
         )
         val useCase = GetLotteryResultsUseCase(fakeRepo)
 
-        useCase(forceRefresh = false).test {
-            val emission = awaitItem()
-            assertTrue(emission is LotteryResult.Error)
-            assertEquals(expectedException.message, emission.cause.message)
-            assertEquals(503, emission.statusCode)
-            assertEquals(false, fakeRepo.lastForceRefresh)
-            awaitComplete()
-        }
+        val emission = useCase(forceRefresh = false)
+        assertTrue(emission is LotteryResult.Error)
+        assertEquals(expectedException.message, emission.cause.message)
+        assertEquals(503, emission.statusCode)
+        assertEquals(false, fakeRepo.lastForceRefresh)
     }
 
     @Test
@@ -86,12 +77,9 @@ class GetLotteryResultsUseCaseTest {
         val fakeRepo = FakeLotteryRepository(LotteryResult.Success(emptyList(), isFixture = true))
         val useCase = LoadFixtureResultsUseCase(fakeRepo)
 
-        useCase().test {
-            val emission = awaitItem()
-            assertTrue(emission is LotteryResult.Success)
-            assertTrue(emission.isFixture)
-            assertTrue(fakeRepo.fixtureLoadCalled)
-            awaitComplete()
-        }
+        val emission = useCase()
+        assertTrue(emission is LotteryResult.Success)
+        assertTrue(emission.isFixture)
+        assertTrue(fakeRepo.fixtureLoadCalled)
     }
 }

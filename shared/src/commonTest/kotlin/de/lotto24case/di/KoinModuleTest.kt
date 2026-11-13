@@ -4,6 +4,7 @@ import de.lotto24case.data.remote.api.Lotto24ApiService
 import de.lotto24case.domain.repository.LotteryRepository
 import de.lotto24case.domain.usecase.GetLotteryResultsUseCase
 import de.lotto24case.domain.usecase.LoadFixtureResultsUseCase
+import de.lotto24case.presentation.viewmodel.DrawResultsViewModel
 import io.ktor.client.HttpClient
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
@@ -30,11 +31,12 @@ class KoinModuleTest : KoinTest {
     }
 
     @Test
-    fun `verifies koin dependency graph resolves all singletons and use cases`() {
+    fun `verifies koin dependency graph resolves all singletons, use cases, and viewmodels`() {
         assertNotNull(get<HttpClient>())
         assertNotNull(get<Lotto24ApiService>())
         assertNotNull(get<LotteryRepository>())
         assertNotNull(get<GetLotteryResultsUseCase>())
         assertNotNull(get<LoadFixtureResultsUseCase>())
+        assertNotNull(get<DrawResultsViewModel>())
     }
 }

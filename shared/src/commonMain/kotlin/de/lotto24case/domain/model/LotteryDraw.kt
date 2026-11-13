@@ -16,9 +16,11 @@ sealed interface LotteryDraw {
     val drawIdentifier: String
     val nextDrawDate: Instant?
     val nextDrawIdentifier: String?
+    val timeZone: String?
     val jackpot: Jackpot?
     val totalStake: String?
     val currency: String
+    val numbers: List<Int>
 
     /**
      * German LOTTO 6aus49 draw result.
@@ -33,10 +35,11 @@ sealed interface LotteryDraw {
         override val drawIdentifier: String,
         override val nextDrawDate: Instant?,
         override val nextDrawIdentifier: String?,
+        override val timeZone: String? = "Europe/Berlin",
         override val jackpot: Jackpot?,
         override val totalStake: String?,
         override val currency: String = "EUR",
-        val numbers: List<Int>,
+        override val numbers: List<Int>,
         val superNumber: Int?,
         val supplementaryLotteries: List<SupplementaryLottery> = emptyList()
     ) : LotteryDraw {
@@ -55,10 +58,11 @@ sealed interface LotteryDraw {
         override val drawIdentifier: String,
         override val nextDrawDate: Instant?,
         override val nextDrawIdentifier: String?,
+        override val timeZone: String? = "Europe/Helsinki",
         override val jackpot: Jackpot?,
         override val totalStake: String?,
         override val currency: String = "EUR",
-        val numbers: List<Int>,
+        override val numbers: List<Int>,
         val euroNumbers: List<Int>
     ) : LotteryDraw {
         override val lotteryType: LotteryType = LotteryType.EUROJACKPOT

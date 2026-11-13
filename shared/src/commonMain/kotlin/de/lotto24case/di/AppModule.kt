@@ -9,7 +9,8 @@ import org.koin.dsl.KoinAppDeclaration
 val appModules = listOf(
     networkModule,
     dataModule,
-    domainModule
+    domainModule,
+    presentationModule
 )
 
 /**

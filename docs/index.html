@@ -407,9 +407,9 @@
     <div class="sidebar-footer">
       <div class="badge-status" style="background-color: var(--success-light); color: var(--success);">
         <span class="badge-pulse" style="background-color: var(--success);"></span>
-        <span>Phase 5 Completed</span>
+        <span>Phase 6 Completed</span>
       </div>
-      <div style="margin-top: 6px; font-size: 11px;">Next: Phase 6 ViewModel & UDF</div>
+      <div style="margin-top: 6px; font-size: 11px;">Next: Phase 7 UI Components & Previews</div>
     </div>
   </aside>
 
@@ -837,24 +837,27 @@
           <input type="checkbox" checked disabled> Configured full Koin DI graph (<code>networkModule</code>, <code>dataModule</code>, <code>domainModule</code>) with automated graph validation test
         </div>
         <div class="checklist-item">
-          <input type="checkbox" checked disabled> Unit tests passing: <code>LotteryRepositoryImplTest</code> (6/6), <code>GetLotteryResultsUseCaseTest</code> (3/3), <code>KoinModuleTest</code> (1/1)
+          <input type="checkbox" checked disabled> Unit tests passing: <code>LotteryRepositoryImplTest</code> (7/7), <code>GetLotteryResultsUseCaseTest</code> (3/3), <code>KoinModuleTest</code> (1/1)
         </div>
       </div>
 
       <div class="phase-card">
         <div class="phase-header">
           <span class="phase-title">Phase 6: ViewModel & Unidirectional Data Flow (UDF)</span>
-          <span class="pill pill-pending">Pending</span>
+          <span class="pill pill-done">Completed</span>
         </div>
-        <p>Reactive state management using <code>StateFlow</code> and immutable UI state.</p>
+        <p>Reactive state management using <code>StateFlow</code>, strictly decoupled presentation models, and robust error guards.</p>
         <div class="checklist-item">
-          <input type="checkbox"> Define <code>DrawResultsUiState</code> (Loading, Success, Error, IsOffline)
-        </div>
-        <div class="checklist-item">
-          <input type="checkbox"> Implement <code>DrawResultsViewModel</code> with pull-to-refresh
+          <input type="checkbox" checked disabled> Defined <code>DrawResultsUiState</code> with <code>ImmutableList</code> and decoupled UI models (<code>BallUiType</code>, <code>SupplementaryGameUiModel</code>)
         </div>
         <div class="checklist-item">
-          <input type="checkbox"> ViewModel unit tests using <strong>Turbine</strong> and Coroutines Test
+          <input type="checkbox" checked disabled> Timezone propagation: native draw zones (Berlin / Helsinki) preserved from DTO to domain to UI formatters
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox" checked disabled> <code>DrawResultsViewModel</code> with Job cancellation guards, <code>canLoadFixture</code> strictly guarded for HTTP 404, and Koin <code>viewModelOf</code>
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox" checked disabled> Unit tests passing: <code>DrawResultsViewModelTest</code> (5/5 with 404/500/offline assertions), <code>LotteryUiMapperTest</code> (3/3 with timezone boundary tests)
         </div>
       </div>
 

@@ -43,6 +43,7 @@ object LotteryDtoMapper {
         val nextDraw = dto.nextDraw
         val nextDrawDate = parseInstant(nextDraw?.drawDateUtc) ?: parseInstant(nextDraw?.drawDate)
         val nextDrawIdentifier = nextDraw?.drawIdentifier
+        val timeZone = nextDraw?.timeZone ?: if (type == LotteryType.EUROJACKPOT) "Europe/Helsinki" else "Europe/Berlin"
 
         val jackpot = mapJackpot(nextDraw?.jackpot)
         val totalStake = lastDraw.totalStake
@@ -55,6 +56,7 @@ object LotteryDtoMapper {
                     drawIdentifier = drawIdentifier,
                     nextDrawDate = nextDrawDate,
                     nextDrawIdentifier = nextDrawIdentifier,
+                    timeZone = timeZone,
                     jackpot = jackpot,
                     totalStake = totalStake,
                     currency = currency,
@@ -69,6 +71,7 @@ object LotteryDtoMapper {
                     drawIdentifier = drawIdentifier,
                     nextDrawDate = nextDrawDate,
                     nextDrawIdentifier = nextDrawIdentifier,
+                    timeZone = timeZone,
                     jackpot = jackpot,
                     totalStake = totalStake,
                     currency = currency,
