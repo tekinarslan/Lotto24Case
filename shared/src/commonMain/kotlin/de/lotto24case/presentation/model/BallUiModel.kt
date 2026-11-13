@@ -12,9 +12,11 @@ import androidx.compose.runtime.Immutable
  *
  * @property number The drawn ball number (e.g. 4, 19, 7).
  * @property type The ball UI classification.
+ * @property index Sequence index within the draw tray (used for deterministic stagger animation delay).
  */
 @Immutable
 data class BallUiModel(
     val number: Int,
-    val type: BallUiType
+    val type: BallUiType,
+    val index: Int = 0
 )

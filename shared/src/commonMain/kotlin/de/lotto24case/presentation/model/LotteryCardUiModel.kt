@@ -9,6 +9,7 @@ import kotlinx.collections.immutable.ImmutableList
  *
  * @property id Stable key for LazyColumn items (e.g. "6aus49", "eurojackpot").
  * @property lotteryType Main lottery type.
+ * @property drawIdentifier Unique draw date/identifier (e.g. "2023-01-21") for animation key stabilization.
  * @property title Header title (e.g. "LOTTO 6aus49", "Eurojackpot").
  * @property formattedDrawDate Formatted date string (e.g. "Fr., 18.09.2020").
  * @property nextDrawBadgeText Formatted next draw badge string (e.g. "Nächste Ziehung: Mi., 23.09.2020"), or null if unavailable.
@@ -27,6 +28,7 @@ import kotlinx.collections.immutable.ImmutableList
 data class LotteryCardUiModel(
     val id: String,
     val lotteryType: LotteryType,
+    val drawIdentifier: String = "",
     val title: String,
     val formattedDrawDate: String,
     val nextDrawBadgeText: String?,
@@ -37,6 +39,8 @@ data class LotteryCardUiModel(
     val mainBallsLabel: String,
     val specialBallLabel: String?,
     val balls: ImmutableList<BallUiModel>,
+    val regularBalls: ImmutableList<BallUiModel> = kotlinx.collections.immutable.persistentListOf(),
+    val specialBalls: ImmutableList<BallUiModel> = kotlinx.collections.immutable.persistentListOf(),
     val superNumber: Int? = null,
     val supplementaryGames: ImmutableList<SupplementaryGameUiModel>,
     val hasJackpot: Boolean

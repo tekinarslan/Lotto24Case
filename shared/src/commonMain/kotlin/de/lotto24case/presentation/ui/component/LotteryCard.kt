@@ -311,13 +311,16 @@ fun LotteryCard(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                val regularBalls = model.balls.filter { it.type == BallUiType.REGULAR }
-                                val specialBalls = model.balls.filter { it.type != BallUiType.REGULAR }
+                                // Pre-split lists from UI model: Zero per-frame allocations or filter{} calls
+                                val regularBalls = model.regularBalls
+                                val specialBalls = model.specialBalls
 
                                 // Regular Balls
                                 regularBalls.forEach { ball ->
+                                    val ballKey = "${model.id}_${model.drawIdentifier}_${ball.type}_${ball.number}"
                                     LotteryBall(
                                         model = ball,
+                                        animationKey = ballKey,
                                         size = if (isLotto6aus49) 32.dp else 31.dp
                                     )
                                 }
@@ -342,8 +345,10 @@ fun LotteryCard(
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             specialBalls.forEach { ball ->
+                                                val ballKey = "${model.id}_${model.drawIdentifier}_${ball.type}_${ball.number}"
                                                 LotteryBall(
                                                     model = ball,
+                                                    animationKey = ballKey,
                                                     size = if (isLotto6aus49) 32.dp else 31.dp
                                                 )
                                             }

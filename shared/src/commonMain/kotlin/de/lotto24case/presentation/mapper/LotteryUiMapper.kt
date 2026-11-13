@@ -65,20 +65,21 @@ object LotteryUiMapper {
         val mainBallsLabel: String
         val specialBallLabel: String?
 
-        val (balls, supplementaryGames) = when (draw) {
+        val (balls, regularBalls, specialBalls, supplementaryGames) = when (draw) {
             is LotteryDraw.Lotto6aus49 -> {
                 superNumberValue = draw.superNumber
                 mainBallsLabel = "GEWINNZAHLEN"
                 specialBallLabel = draw.superNumber?.let { "Superzahl: $it" }
 
-                val ballList = buildList {
-                    draw.numbers.forEach { number ->
-                        add(BallUiModel(number = number, type = BallUiType.REGULAR))
-                    }
-                    draw.superNumber?.let { superNum ->
-                        add(BallUiModel(number = superNum, type = BallUiType.SUPER_ZAHL))
-                    }
+                val regList = draw.numbers.mapIndexed { index, number ->
+                    BallUiModel(number = number, type = BallUiType.REGULAR, index = index)
                 }.toPersistentList()
+
+                val specList = if (draw.superNumber != null) {
+                    persistentListOf(BallUiModel(number = draw.superNumber, type = BallUiType.SUPER_ZAHL, index = draw.numbers.size))
+                } else persistentListOf()
+
+                val ballList = (regList + specList).toPersistentList()
 
                 val games = draw.supplementaryLotteries.map { domainGame ->
                     SupplementaryGameUiModel(
@@ -87,28 +88,30 @@ object LotteryUiMapper {
                     )
                 }.toPersistentList()
 
-                ballList to games
+                Tuple4(ballList, regList, specList, games)
             }
             is LotteryDraw.Eurojackpot -> {
                 mainBallsLabel = "5 GEWINNZAHLEN"
                 specialBallLabel = "2 EUROZAHLEN"
 
-                val ballList = buildList {
-                    draw.numbers.forEach { number ->
-                        add(BallUiModel(number = number, type = BallUiType.REGULAR))
-                    }
-                    draw.euroNumbers.forEach { euroNum ->
-                        add(BallUiModel(number = euroNum, type = BallUiType.EURO_ZAHL))
-                    }
+                val regList = draw.numbers.mapIndexed { index, number ->
+                    BallUiModel(number = number, type = BallUiType.REGULAR, index = index)
                 }.toPersistentList()
 
-                ballList to persistentListOf<SupplementaryGameUiModel>()
+                val specList = draw.euroNumbers.mapIndexed { euroIndex, euroNum ->
+                    BallUiModel(number = euroNum, type = BallUiType.EURO_ZAHL, index = draw.numbers.size + euroIndex)
+                }.toPersistentList()
+
+                val ballList = (regList + specList).toPersistentList()
+
+                Tuple4(ballList, regList, specList, persistentListOf())
             }
         }
 
         return LotteryCardUiModel(
             id = draw.lotteryType.id,
             lotteryType = draw.lotteryType,
+            drawIdentifier = draw.drawIdentifier,
             title = title,
             formattedDrawDate = formattedDate,
             nextDrawBadgeText = nextDrawBadgeText,
@@ -119,11 +122,15 @@ object LotteryUiMapper {
             mainBallsLabel = mainBallsLabel,
             specialBallLabel = specialBallLabel,
             balls = balls,
+            regularBalls = regularBalls,
+            specialBalls = specialBalls,
             superNumber = superNumberValue,
             supplementaryGames = supplementaryGames,
             hasJackpot = draw.jackpot?.hasAmount == true
         )
     }
+
+    private data class Tuple4<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)
 
     private fun formatAnchorJackpot(money: Money?): Pair<String?, String?> {
         if (money == null || money.minorUnits <= 0L) return null to null
