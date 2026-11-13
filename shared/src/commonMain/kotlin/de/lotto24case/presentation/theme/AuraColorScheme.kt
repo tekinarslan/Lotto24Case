@@ -72,7 +72,11 @@ data class AuraColorScheme(
 
     // Banners & Feedback
     val infoBannerBackground: Color,
+    val infoBannerBorder: Color,
     val infoBannerText: Color,
+    val offlineBannerBackground: Color,
+    val offlineBannerBorder: Color,
+    val offlineBannerText: Color,
     val error: Color,
     val onError: Color
 )
@@ -132,7 +136,11 @@ val AuraLightColorScheme = AuraColorScheme(
     nextDrawEuroDate = Color(0xFFF59E0B),
 
     infoBannerBackground = Color(0xFFFEF3C7),
+    infoBannerBorder = Color(0xFFFDE68A),
     infoBannerText = Color(0xFF92400E),
+    offlineBannerBackground = Color(0xFFFEF2F2),
+    offlineBannerBorder = Color(0xFFFECACA),
+    offlineBannerText = Color(0xFF991B1B),
     error = Color(0xFFBA1A1A),
     onError = Color(0xFFFFFFFF)
 )
@@ -192,7 +200,11 @@ val AuraDarkColorScheme = AuraColorScheme(
     nextDrawEuroDate = Color(0xFFF59E0B),
 
     infoBannerBackground = Color(0xFF1E293B),
+    infoBannerBorder = Color(0xFF334155),
     infoBannerText = Color(0xFFFDE68A),
+    offlineBannerBackground = Color(0xFF450A0A),
+    offlineBannerBorder = Color(0xFF7F1D1D),
+    offlineBannerText = Color(0xFFFCA5A5),
     error = Color(0xFFFFB4AB),
     onError = Color(0xFF690005)
 )

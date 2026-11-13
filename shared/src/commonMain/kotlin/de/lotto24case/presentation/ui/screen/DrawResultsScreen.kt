@@ -1,6 +1,7 @@
 package de.lotto24case.presentation.ui.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -226,7 +227,8 @@ fun DrawResultsContent(
                             if (uiState.bannerMessage != null) {
                                 item(key = "banner") {
                                     InfoBanner(
-                                        message = uiState.bannerMessage
+                                        message = uiState.bannerMessage,
+                                        isOffline = uiState.isOfflineFallback
                                     )
                                 }
                             }
@@ -275,15 +277,22 @@ private fun LoadingView() {
 @Composable
 private fun InfoBanner(
     message: String,
+    isOffline: Boolean,
     modifier: Modifier = Modifier
 ) {
     val colors = AuraTheme.colors
+    val bannerBg = if (isOffline) colors.offlineBannerBackground else colors.infoBannerBackground
+    val bannerBorder = if (isOffline) colors.offlineBannerBorder else colors.infoBannerBorder
+    val bannerText = if (isOffline) colors.offlineBannerText else colors.infoBannerText
+    val icon = if (isOffline) "⚡" else "ℹ️"
+    val bannerShape = RoundedCornerShape(10.dp)
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
-            .background(colors.infoBannerBackground)
+            .clip(bannerShape)
+            .background(bannerBg)
+            .border(1.dp, bannerBorder, bannerShape)
             .padding(horizontal = AuraSpacing.spaceMd, vertical = AuraSpacing.spaceSm)
     ) {
         Row(
@@ -291,13 +300,13 @@ private fun InfoBanner(
             horizontalArrangement = Arrangement.spacedBy(AuraSpacing.spaceSm)
         ) {
             Text(
-                text = "ℹ️",
+                text = icon,
                 fontSize = 14.sp
             )
             Text(
                 text = message,
                 style = AuraTypography.bodySm.copy(fontWeight = FontWeight.SemiBold),
-                color = colors.infoBannerText
+                color = bannerText
             )
         }
     }

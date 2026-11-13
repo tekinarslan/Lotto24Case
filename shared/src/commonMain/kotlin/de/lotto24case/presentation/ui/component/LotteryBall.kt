@@ -1,24 +1,18 @@
 package de.lotto24case.presentation.ui.component
 
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
@@ -36,7 +30,6 @@ import de.lotto24case.presentation.theme.AuraTheme
  * - Regular: semantic ball background, subtle border, onSurface text.
  * - Superzahl: Vibrant rose-red (#E11D48 / #DC2626) background, pure white bold text, rose shadow.
  * - Eurozahlen: Rich gold/amber (#CA8A04) background, pure white bold text, amber shadow.
- * - Physics spring bounce animation on press.
  * - Colors derived from [AuraTheme.colors].
  */
 @Composable
@@ -46,18 +39,7 @@ fun LotteryBall(
     size: Dp = 38.dp,
     onClick: () -> Unit = {}
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
     val colors = AuraTheme.colors
-
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 1.15f else 1.0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "BallSpringScale"
-    )
 
     val (bgBrush, textColor, borderColor, shadowColor) = when (model.type) {
         BallUiType.REGULAR -> {
@@ -95,7 +77,6 @@ fun LotteryBall(
     Box(
         modifier = modifier
             .size(size)
-            .scale(scale)
             .shadow(
                 elevation = if (model.type == BallUiType.REGULAR) 1.dp else 4.dp,
                 shape = CircleShape,
@@ -110,7 +91,7 @@ fun LotteryBall(
                 } else Modifier
             )
             .clickable(
-                interactionSource = interactionSource,
+                interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = onClick
             )
