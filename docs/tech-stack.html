@@ -112,7 +112,7 @@
   <ul>
     <li><strong>Unidirectional Data Flow (UDF):</strong> Single <code>StateFlow&lt;DrawResultsUiState&gt;</code> emitted by <code>DrawResultsViewModel</code>.</li>
     <li><strong>Dependency Inversion:</strong> Domain defines repository and navigator interfaces; Data and Platform layers implement them.</li>
-    <li><strong>Offline-First Resilience:</strong> Cached data is seamlessly served if network fails, accompanied by a non-intrusive offline status banner.</li>
+    <li><strong>Session In-Memory Cache & Failure Resilience:</strong> Uses a session-scoped in-memory cache retaining previous draw results; if a refresh fails due to network outage, existing numbers are retained with an informational status banner rather than wiping the screen.</li>
     <li><strong>Physics-based Motion:</strong> Compose <code>spring()</code> physics for natural ball bounce and card press micro-interactions.</li>
   </ul>
 </body>
