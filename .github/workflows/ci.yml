@@ -65,7 +65,7 @@ jobs:
   # ==========================================
   ios-build:
     name: iOS Framework & Simulator App Build
-    runs-on: macos-14
+    runs-on: macos-latest
     timeout-minutes: 25
 
     steps:
@@ -86,8 +86,8 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Select Xcode
-        run: sudo xcode-select -switch /Applications/Xcode_15.4.app || true
+      - name: Verify Xcode Version
+        run: xcodebuild -version
 
       - name: Compile Shared Multiplatform Framework for iOS Simulator
         run: ./gradlew :shared:compileKotlinIosSimulatorArm64 --stacktrace
