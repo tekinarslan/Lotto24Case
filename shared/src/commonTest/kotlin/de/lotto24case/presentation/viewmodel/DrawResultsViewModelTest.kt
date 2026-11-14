@@ -92,7 +92,7 @@ class DrawResultsViewModelTest {
     }
 
     @Test
-    fun `canLoadFixture is true across error scenarios including 404, 500, and network outages`() = runTest {
+    fun `canLoadFixture is true across error scenarios including 404 and 500 and network outages`() = runTest {
         val repo = FakeRepository().apply {
             resultToReturn = LotteryResult.Error(
                 cause = IllegalStateException("Not Found"),

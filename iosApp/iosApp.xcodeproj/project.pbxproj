@@ -6,17 +6,54 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		04A100012CE0000100000001 /* Lotto24WidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 04A100022CE0000100000001 /* Lotto24WidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+
+/* Begin PBXContainerItemProxy section */
+		04A100032CE0000100000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 776B376B5813879D39E1AA1D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 04A100042CE0000100000001;
+			remoteInfo = Lotto24WidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		04A100052CE0000100000001 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				04A100012CE0000100000001 /* Lotto24WidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		4C49AA139B3F09C51C9A0879 /* Lotto24Case.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lotto24Case.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		04A100022CE0000100000001 /* Lotto24WidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = Lotto24WidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		57F1BD1EC83D5390B9B07EFB /* Exceptions for "iosApp" folder in "iosApp" target */ = {
+		57F1BD1EC83D5390B9B07EFB /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
 			target = 9CD0671B7C5F539ABDB3A7A0 /* iosApp */;
+		};
+		04A100062CE0000100000001 /* Exceptions for "Lotto24WidgetExtension" folder in "Lotto24WidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 04A100042CE0000100000001 /* Lotto24WidgetExtension */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -24,14 +61,30 @@
 		85A7FBEDA86AE29D6129FABB /* iosApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				57F1BD1EC83D5390B9B07EFB /* Exceptions for "iosApp" folder in "iosApp" target */,
+				57F1BD1EC83D5390B9B07EFB /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
 			);
 			path = iosApp;
 			sourceTree = "<group>";
 		};
 		FCAA416459F7ED9CD6809C25 /* Configuration */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
 			path = Configuration;
+			sourceTree = "<group>";
+		};
+		04A100072CE0000100000001 /* Lotto24WidgetExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				04A100062CE0000100000001 /* Exceptions for "Lotto24WidgetExtension" folder in "Lotto24WidgetExtension" target */,
+			);
+			path = Lotto24WidgetExtension;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -44,24 +97,33 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		04A100082CE0000100000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		52A709AA8F83843FC0BA867B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				4C49AA139B3F09C51C9A0879 /* Lotto24Case.app */,
+				04A100022CE0000100000001 /* Lotto24WidgetExtension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		7C718ACC052BEBAD4FDB6469 = {
 			isa = PBXGroup;
 			children = (
 				FCAA416459F7ED9CD6809C25 /* Configuration */,
 				85A7FBEDA86AE29D6129FABB /* iosApp */,
+				04A100072CE0000100000001 /* Lotto24WidgetExtension */,
 				52A709AA8F83843FC0BA867B /* Products */,
 			);
-			sourceTree = "<group>";
-		};
-		52A709AA8F83843FC0BA867B /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				4C49AA139B3F09C51C9A0879 /* Lotto24Case.app */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -75,10 +137,12 @@
 				196A0DFBE948FDAB1A2799E0 /* Sources */,
 				B79ACE3F9058700123AFF1CA /* Frameworks */,
 				1B11CE16D0A773856725AABC /* Resources */,
+				04A100052CE0000100000001 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				04A1000C2CE0000100000001 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				85A7FBEDA86AE29D6129FABB /* iosApp */,
@@ -90,6 +154,29 @@
 			productReference = 4C49AA139B3F09C51C9A0879 /* Lotto24Case.app */;
 			productType = "com.apple.product-type.application";
 		};
+		04A100042CE0000100000001 /* Lotto24WidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 04A100092CE0000100000001 /* Build configuration list for PBXNativeTarget "Lotto24WidgetExtension" */;
+			buildPhases = (
+				04A1000F2CE0000100000001 /* Compile Kotlin Framework */,
+				04A1000A2CE0000100000001 /* Sources */,
+				04A100082CE0000100000001 /* Frameworks */,
+				04A1000B2CE0000100000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				04A100072CE0000100000001 /* Lotto24WidgetExtension */,
+			);
+			name = Lotto24WidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = Lotto24WidgetExtension;
+			productReference = 04A100022CE0000100000001 /* Lotto24WidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -100,6 +187,9 @@
 				LastSwiftUpdateCheck = 1620;
 				LastUpgradeCheck = 1620;
 				TargetAttributes = {
+					04A100042CE0000100000001 = {
+						CreatedOnToolsVersion = 16.2;
+					};
 					9CD0671B7C5F539ABDB3A7A0 = {
 						CreatedOnToolsVersion = 16.2;
 					};
@@ -120,12 +210,20 @@
 			projectRoot = "";
 			targets = (
 				9CD0671B7C5F539ABDB3A7A0 /* iosApp */,
+				04A100042CE0000100000001 /* Lotto24WidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		1B11CE16D0A773856725AABC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		04A1000B2CE0000100000001 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -154,6 +252,25 @@
 			shellPath = /bin/sh;
 			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\n./gradlew :shared:embedAndSignAppleFrameworkForXcode\n";
 		};
+		04A1000F2CE0000100000001 /* Compile Kotlin Framework */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Compile Kotlin Framework";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\n./gradlew :shared:embedAndSignAppleFrameworkForXcode\n";
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -164,7 +281,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		04A1000A2CE0000100000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		04A1000C2CE0000100000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 04A100042CE0000100000001 /* Lotto24WidgetExtension */;
+			targetProxy = 04A100032CE0000100000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		1063601E745E9C88BD28A5E1 /* Debug */ = {
@@ -231,6 +363,34 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
+		};
+		304227AF45DC79884E8DCDC1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_ASSET_PATHS = "\"iosApp/Preview Content\"";
+				DEVELOPMENT_TEAM = "${TEAM_ID}";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = iosApp/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
 		};
 		729160045C173FDDF1646890 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -318,28 +478,78 @@
 			};
 			name = Debug;
 		};
-		304227AF45DC79884E8DCDC1 /* Release */ = {
+		04A1000D2CE0000100000001 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = FCAA416459F7ED9CD6809C25 /* Configuration */;
+			baseConfigurationReferenceRelativePath = Config.xcconfig;
 			buildSettings = {
 				ARCHS = arm64;
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_ASSET_PATHS = "\"iosApp/Preview Content\"";
 				DEVELOPMENT_TEAM = "${TEAM_ID}";
 				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
+					"$(BUILT_PRODUCTS_DIR)",
+				);
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = iosApp/Info.plist;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_FILE = Lotto24WidgetExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Lotto24WidgetExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
 				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					"Shared",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "de.lotto24case.Lotto24Case$(TEAM_ID).Lotto24WidgetExtension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		04A1000E2CE0000100000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = FCAA416459F7ED9CD6809C25 /* Configuration */;
+			baseConfigurationReferenceRelativePath = Config.xcconfig;
+			buildSettings = {
+				ARCHS = arm64;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "${TEAM_ID}";
+				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
+					"$(BUILT_PRODUCTS_DIR)",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Lotto24WidgetExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Lotto24WidgetExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					"Shared",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "de.lotto24case.Lotto24Case$(TEAM_ID).Lotto24WidgetExtension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -363,6 +573,15 @@
 			buildConfigurations = (
 				83201CB2BE930CFE46DE660F /* Debug */,
 				304227AF45DC79884E8DCDC1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		04A100092CE0000100000001 /* Build configuration list for PBXNativeTarget "Lotto24WidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				04A1000D2CE0000100000001 /* Debug */,
+				04A1000E2CE0000100000001 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Lotto24Case</string>
+    <string name="widget_description">Zeigt die aktuellen Lotto24 Ziehungsergebnisse und Gewinnzahlen auf dem Startbildschirm.</string>
 </resources>

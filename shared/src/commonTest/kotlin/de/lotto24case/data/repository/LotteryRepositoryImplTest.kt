@@ -122,7 +122,7 @@ class LotteryRepositoryImplTest {
     }
 
     @Test
-    fun `retains previous in-memory data in error when network fails on refresh (offline support)`() = runTest {
+    fun `retains previous in-memory data in error when network fails on refresh offline support`() = runTest {
         val testDispatcher = StandardTestDispatcher(testScheduler)
         val fakeApi = FakeApiService().apply {
             apiResultToReturn = LotteryDataResult.Live(listOf(sampleLotto6aus49Dto))

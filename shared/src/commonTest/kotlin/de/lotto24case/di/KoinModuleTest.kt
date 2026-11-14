@@ -31,7 +31,7 @@ class KoinModuleTest : KoinTest {
     }
 
     @Test
-    fun `verifies koin dependency graph resolves all singletons, use cases, and viewmodels`() {
+    fun `verifies koin dependency graph resolves all singletons and use cases and viewmodels`() {
         assertNotNull(get<HttpClient>())
         assertNotNull(get<Lotto24ApiService>())
         assertNotNull(get<LotteryRepository>())
