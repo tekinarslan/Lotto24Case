@@ -3,11 +3,15 @@ package de.lotto24case.widget
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.coerceAtLeast
+import androidx.compose.ui.unit.coerceIn
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.LocalSize
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
@@ -19,6 +23,7 @@ import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
+import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
@@ -41,7 +46,10 @@ import kotlinx.collections.immutable.toImmutableList
  * matching the exact in-app Aura Lotto card layout without animations.
  *
  * Fully static representation meeting Large Widget Card requirements:
- * - Left vertical Golden Anchor Strip with Monogram, Anchor Label, Jackpot & Bottom Seal
+ * - Measures available card width and dynamically calculates adaptive ball diameter for 6+1 and 5+2 layouts
+ * - Replaces unbounded flexible spacers with controlled proportional spacing across the entire tray width
+ * - Caps ball size (20dp..28dp) to prevent overflow while filling the horizontal tray span
+ * - Left vertical Golden Anchor Strip filled 100% height across card
  * - Title and draw date
  * - Supplementary games (Spiel 77, SUPER6 for LOTTO 6aus49)
  * - Winning numbers with German semantic labels
@@ -111,18 +119,25 @@ class Lotto24GlanceWidget : GlanceAppWidget() {
 private fun Lotto24DualCardWidgetContent(
     states: ImmutableList<WidgetDrawState>
 ) {
+    val glanceSize = LocalSize.current
+    val widgetWidth = glanceSize.width
+
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
             .background(Color(0xFFF1F5F9)) // App screen background canvas (#F1F5F9)
-            .cornerRadius(16.dp)
-            .padding(6.dp)
             .clickable(actionStartActivity<MainActivity>())
     ) {
         states.forEachIndexed { index, drawState ->
-            GlanceHomeStyleCard(drawState = drawState)
+            GlanceHomeStyleCard(
+                drawState = drawState,
+                modifier = GlanceModifier
+                    .defaultWeight()
+                    .fillMaxWidth(),
+                widgetWidth = widgetWidth
+            )
             if (index < states.size - 1) {
-                Spacer(modifier = GlanceModifier.height(6.dp))
+                Spacer(modifier = GlanceModifier.height(4.dp))
             }
         }
     }
@@ -130,20 +145,37 @@ private fun Lotto24DualCardWidgetContent(
 
 /**
  * Replicates the home app screen's [LotteryCard] design in Jetpack Glance:
- * - Left vertical Golden Anchor Strip with Monogram, Anchor Label, Jackpot & Bottom Seal
+ * - Left vertical Golden Anchor Strip filled 100% height across card
  * - Main Card Body with Title, Calendar Date, Supplementary Games, Sunken Ball Tray, Special Pod & Next Draw footer
+ * - Dynamically calculates adaptive ball diameter & controlled spacing from [widgetWidth]
  */
 @Composable
 private fun GlanceHomeStyleCard(
-    drawState: WidgetDrawState
+    drawState: WidgetDrawState,
+    modifier: GlanceModifier = GlanceModifier,
+    widgetWidth: Dp = 320.dp
 ) {
     val isLotto6aus49 = drawState.lotteryId.contains("6aus49", ignoreCase = true)
     val anchorBgColor = if (isLotto6aus49) Color(0xFFE5A91E) else Color(0xFFD97706)
     val cardBgColor = Color(0xFFFFFFFF)
 
+    // Measure available card width and compute adaptive ball diameter & controlled gaps
+    val effectiveWidth = if (widgetWidth > 0.dp) widgetWidth else 320.dp
+    // Deduct: anchor (48dp) + card padding (16dp) + tray inner padding (8dp)
+    val usableTrayWidth = (effectiveWidth - 72.dp).coerceAtLeast(160.dp)
+
+    // 7 balls total across both 6+1 (LOTTO 6aus49) and 5+2 (Eurojackpot)
+    val baseGaps = 28.dp
+    val rawBallDiameter = (usableTrayWidth - baseGaps) / 7f
+    val ballDiameter = rawBallDiameter.coerceIn(20.dp, 28.dp)
+
+    // Controlled spacing: replace huge flexible spacer with proportional spacing
+    val remainingSpace = (usableTrayWidth - (ballDiameter * 7) - 6.dp).coerceAtLeast(16.dp)
+    val interBallGap = (remainingSpace / 8f).coerceIn(3.dp, 6.dp)
+    val podSeparatorGap = (remainingSpace - (interBallGap * 5f)).coerceIn(6.dp, 14.dp)
+
     Row(
-        modifier = GlanceModifier
-            .fillMaxWidth()
+        modifier = modifier
             .background(cardBgColor)
             .cornerRadius(12.dp)
     ) {
@@ -151,17 +183,21 @@ private fun GlanceHomeStyleCard(
         Box(
             modifier = GlanceModifier
                 .width(48.dp)
+                .fillMaxHeight()
                 .background(anchorBgColor)
-                .padding(vertical = 6.dp, horizontal = 2.dp),
+                .cornerRadius(12.dp)
+                .padding(vertical = 4.dp, horizontal = 2.dp),
             contentAlignment = Alignment.Center
         ) {
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = GlanceModifier.fillMaxHeight(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 // Top Monogram
                 Box(
                     modifier = GlanceModifier
-                        .size(20.dp)
+                        .size(18.dp)
                         .background(Color(0x33000000))
                         .cornerRadius(999.dp),
                     contentAlignment = Alignment.Center
@@ -185,7 +221,7 @@ private fun GlanceHomeStyleCard(
                     )
                 )
 
-                Spacer(modifier = GlanceModifier.height(2.dp))
+                Spacer(modifier = GlanceModifier.defaultWeight())
 
                 // Vertical Jackpot Amount
                 Text(
@@ -215,7 +251,7 @@ private fun GlanceHomeStyleCard(
                     )
                 )
 
-                Spacer(modifier = GlanceModifier.height(2.dp))
+                Spacer(modifier = GlanceModifier.defaultWeight())
 
                 // Bottom Seal Mark
                 Box(
@@ -241,7 +277,9 @@ private fun GlanceHomeStyleCard(
         Column(
             modifier = GlanceModifier
                 .defaultWeight()
-                .padding(start = 8.dp, top = 6.dp, end = 8.dp, bottom = 6.dp)
+                .fillMaxHeight()
+                .padding(start = 8.dp, top = 4.dp, end = 8.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             // Header: Title & Date
             Row(
@@ -338,7 +376,7 @@ private fun GlanceHomeStyleCard(
 
             Spacer(modifier = GlanceModifier.height(2.dp))
 
-            // Sunken Ball Tray
+            // Sunken Ball Tray (adaptive balls with controlled spacing using full horizontal width)
             Box(
                 modifier = GlanceModifier
                     .fillMaxWidth()
@@ -351,17 +389,20 @@ private fun GlanceHomeStyleCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Regular Balls
-                    drawState.regularNumbers.forEach { number ->
+                    drawState.regularNumbers.forEachIndexed { index, number ->
                         StaticGlanceBall(
                             number = number,
                             backgroundColor = Color(0xFFFFFFFF),
                             textColor = Color(0xFF0F172A),
-                            size = 19
+                            diameter = ballDiameter
                         )
-                        Spacer(modifier = GlanceModifier.width(2.dp))
+                        if (index < drawState.regularNumbers.size - 1) {
+                            Spacer(modifier = GlanceModifier.width(interBallGap))
+                        }
                     }
 
-                    Spacer(modifier = GlanceModifier.defaultWeight())
+                    // Controlled separator gap between regular balls and special pod
+                    Spacer(modifier = GlanceModifier.width(podSeparatorGap))
 
                     // Special Balls Pod (Contrast Capsule)
                     Box(
@@ -370,7 +411,7 @@ private fun GlanceHomeStyleCard(
                                 if (isLotto6aus49) Color(0xFFFEE2E2) else Color(0xFFFEF3C7)
                             )
                             .cornerRadius(999.dp)
-                            .padding(horizontal = 2.dp, vertical = 1.dp)
+                            .padding(horizontal = 3.dp, vertical = 2.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             drawState.specialNumbers.forEachIndexed { i, specialNum ->
@@ -378,10 +419,10 @@ private fun GlanceHomeStyleCard(
                                     number = specialNum,
                                     backgroundColor = if (isLotto6aus49) Color(0xFFDC2626) else Color(0xFFD97706),
                                     textColor = Color.White,
-                                    size = 19
+                                    diameter = ballDiameter
                                 )
                                 if (i < drawState.specialNumbers.size - 1) {
-                                    Spacer(modifier = GlanceModifier.width(2.dp))
+                                    Spacer(modifier = GlanceModifier.width(interBallGap))
                                 }
                             }
                         }
@@ -424,11 +465,17 @@ private fun StaticGlanceBall(
     number: Int,
     backgroundColor: Color,
     textColor: Color,
-    size: Int = 19
+    diameter: Dp = 20.dp
 ) {
+    val fontSize = when {
+        diameter >= 26.dp -> if (number >= 10) 10.sp else 11.sp
+        diameter >= 23.dp -> if (number >= 10) 9.sp else 10.sp
+        else -> if (number >= 10) 8.sp else 9.sp
+    }
+
     Box(
         modifier = GlanceModifier
-            .size(size.dp)
+            .size(diameter)
             .background(backgroundColor)
             .cornerRadius(999.dp),
         contentAlignment = Alignment.Center
@@ -437,7 +484,7 @@ private fun StaticGlanceBall(
             text = number.toString(),
             style = TextStyle(
                 color = ColorProvider(textColor),
-                fontSize = if (number >= 10) 8.sp else 9.sp,
+                fontSize = fontSize,
                 fontWeight = FontWeight.Bold
             )
         )

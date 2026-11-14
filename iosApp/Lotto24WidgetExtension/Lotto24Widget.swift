@@ -105,19 +105,21 @@ struct Lotto24WidgetEntryView: View {
     var entry: Lotto24WidgetProvider.Entry
 
     var body: some View {
-        VStack(spacing: family == .systemLarge ? 8 : 4) {
+        VStack(spacing: family == .systemLarge ? 6 : 4) {
             ForEach(entry.drawStates, id: \.lotteryId) { drawState in
                 HomeStyleCardView(drawState: drawState, isLarge: family == .systemLarge)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .padding(family == .systemLarge ? 8 : 4)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(red: 0.95, green: 0.96, blue: 0.98)) // App canvas (#F1F5F9)
     }
 }
 
 /**
  * Matches the home app screen's [LotteryCard] design in SwiftUI:
- * - Left vertical Golden Anchor Strip with Monogram, Anchor Label, Jackpot & Bottom Seal
+ * - Left vertical Golden Anchor Strip filled 100% height across card
+ * - Adaptive ball tray utilizing the full horizontal width with controlled spacing & capped diameter
  * - Main Card Body with Title, Date, Supplementary Games, Sunken Ball Tray & Next Draw Footer
  */
 private struct HomeStyleCardView: View {
@@ -190,6 +192,7 @@ private struct HomeStyleCardView: View {
                 }
             }
             .frame(width: isLarge ? 50 : 42)
+            .frame(maxHeight: .infinity)
             .padding(.vertical, isLarge ? 6 : 4)
             .background(anchorGradient)
 
@@ -239,35 +242,13 @@ private struct HomeStyleCardView: View {
                     }
                 }
 
-                // Sunken Ball Tray
-                HStack(spacing: 3) {
-                    // Regular Balls
-                    ForEach(drawState.regularNumbers.map { Int(truncating: $0) }, id: \.self) { num in
-                        StaticBallView(number: num, backgroundColor: .white, textColor: Color(red: 0.06, green: 0.09, blue: 0.16), size: isLarge ? 20 : 17)
-                    }
-
-                    Spacer(minLength: 2)
-
-                    // Special Pod
-                    HStack(spacing: 2) {
-                        ForEach(drawState.specialNumbers.map { Int(truncating: $0) }, id: \.self) { specialNum in
-                            StaticBallView(
-                                number: specialNum,
-                                backgroundColor: isLotto6aus49 ? Color(red: 0.86, green: 0.15, blue: 0.15) : Color(red: 0.85, green: 0.47, blue: 0.02),
-                                textColor: .white,
-                                size: isLarge ? 20 : 17
-                            )
-                        }
-                    }
-                    .padding(.horizontal, 3)
-                    .padding(.vertical, 2)
-                    .background(isLotto6aus49 ? Color(red: 1.0, green: 0.89, blue: 0.89) : Color(red: 0.99, green: 0.95, blue: 0.78))
-                    .cornerRadius(999)
-                }
-                .padding(.horizontal, 4)
-                .padding(.vertical, isLarge ? 3 : 2)
-                .background(Color(red: 0.97, green: 0.98, blue: 0.99))
-                .cornerRadius(999)
+                // Sunken Ball Tray (Adaptive Width, Controlled Spacing, Capped Ball Size)
+                AdaptiveBallTrayView(
+                    regularNumbers: drawState.regularNumbers.map { Int(truncating: $0) },
+                    specialNumbers: drawState.specialNumbers.map { Int(truncating: $0) },
+                    isLotto6aus49: isLotto6aus49,
+                    isLarge: isLarge
+                )
 
                 // Next Draw Section (in Large Widget)
                 if isLarge, let nextDraw = drawState.nextDrawText {
@@ -283,17 +264,90 @@ private struct HomeStyleCardView: View {
                     }
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(.horizontal, isLarge ? 8 : 6)
             .padding(.vertical, isLarge ? 6 : 4)
             .background(Color.white)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .cornerRadius(12)
+        .clipped()
         .shadow(color: Color.black.opacity(0.06), radius: 3, x: 0, y: 1)
     }
 }
 
 /**
- * Static non-animated spherical ball view.
+ * Adaptive Ball Tray View:
+ * Measures available width, dynamically sizes 7 balls (6+1 or 5+2),
+ * and replaces unbounded flexible spacer with controlled proportional spacing.
+ */
+private struct AdaptiveBallTrayView: View {
+    let regularNumbers: [Int]
+    let specialNumbers: [Int]
+    let isLotto6aus49: Bool
+    let isLarge: Bool
+
+    var body: some View {
+        GeometryReader { geometry in
+            let availableWidth = max(140.0, geometry.size.width)
+            let trayInnerPadding: CGFloat = 8.0 // 4pt on each side
+            let podPadding: CGFloat = 6.0 // 3pt on each side
+            let usableWidth = availableWidth - trayInnerPadding
+
+            // 7 balls total across both 6+1 (LOTTO 6aus49) and 5+2 (Eurojackpot)
+            let baseGaps: CGFloat = 28.0
+            let rawDiameter = (usableWidth - baseGaps) / 7.0
+            let ballSize: CGFloat = min(isLarge ? 28.0 : 22.0, max(18.0, rawDiameter))
+
+            let remainingSpace = max(14.0, usableWidth - (ballSize * 7.0) - podPadding)
+            let interBallSpacing = min(6.0, max(2.5, remainingSpace / 8.0))
+            let podSeparatorGap = min(14.0, max(6.0, remainingSpace - (interBallSpacing * 5.0)))
+
+            HStack(spacing: 0) {
+                // Regular Balls
+                ForEach(Array(regularNumbers.enumerated()), id: \.offset) { index, num in
+                    StaticBallView(
+                        number: num,
+                        backgroundColor: .white,
+                        textColor: Color(red: 0.06, green: 0.09, blue: 0.16),
+                        size: ballSize
+                    )
+                    if index < regularNumbers.count - 1 {
+                        Spacer().frame(width: interBallSpacing)
+                    }
+                }
+
+                // Controlled separator gap between regular balls and special pod
+                Spacer().frame(width: podSeparatorGap)
+
+                // Special Balls Pod (Contrast Capsule)
+                HStack(spacing: interBallSpacing) {
+                    ForEach(specialNumbers, id: \.self) { specialNum in
+                        StaticBallView(
+                            number: specialNum,
+                            backgroundColor: isLotto6aus49 ? Color(red: 0.86, green: 0.15, blue: 0.15) : Color(red: 0.85, green: 0.47, blue: 0.02),
+                            textColor: .white,
+                            size: ballSize
+                        )
+                    }
+                }
+                .padding(.horizontal, 3)
+                .padding(.vertical, 2)
+                .background(isLotto6aus49 ? Color(red: 1.0, green: 0.89, blue: 0.89) : Color(red: 0.99, green: 0.95, blue: 0.78))
+                .cornerRadius(999)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            .padding(.horizontal, 4)
+            .padding(.vertical, isLarge ? 3 : 2)
+            .background(Color(red: 0.97, green: 0.98, blue: 0.99))
+            .cornerRadius(999)
+        }
+        .frame(height: isLarge ? 34 : 26)
+    }
+}
+
+/**
+ * Static non-animated spherical ball view with font scaling proportionally to diameter.
  */
 private struct StaticBallView: View {
     let number: Int
@@ -301,9 +355,21 @@ private struct StaticBallView: View {
     let textColor: Color
     var size: CGFloat = 20
 
+    private var fontSize: CGFloat {
+        if size >= 26 {
+            return number >= 10 ? 10 : 11
+        } else if size >= 23 {
+            return number >= 10 ? 9 : 10
+        } else if size >= 20 {
+            return number >= 10 ? 8 : 9
+        } else {
+            return number >= 10 ? 7 : 8
+        }
+    }
+
     var body: some View {
         Text("\(number)")
-            .font(.system(size: number >= 10 ? (size > 18 ? 8 : 7) : (size > 18 ? 9 : 8), weight: .bold))
+            .font(.system(size: fontSize, weight: .bold))
             .foregroundColor(textColor)
             .frame(width: size, height: size)
             .background(backgroundColor)
@@ -326,5 +392,6 @@ struct Lotto24Widget: Widget {
         .configurationDisplayName("Lotto24 Ziehungsergebnisse")
         .description("Zeigt LOTTO 6aus49 und Eurojackpot Gewinnzahlen und Jackpots.")
         .supportedFamilies([.systemMedium, .systemLarge])
+        .contentMarginsDisabled()
     }
 }
