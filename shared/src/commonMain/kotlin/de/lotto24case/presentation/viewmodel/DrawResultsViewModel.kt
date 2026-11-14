@@ -129,7 +129,7 @@ class DrawResultsViewModel(
                         DrawResultsUiState.Error(
                             message = errorMessage,
                             statusCode = result.statusCode,
-                            canLoadFixture = (result.statusCode == 404)
+                            canLoadFixture = true
                         )
                     }
                 }

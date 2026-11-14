@@ -92,7 +92,7 @@ class DrawResultsViewModelTest {
     }
 
     @Test
-    fun `canLoadFixture is strictly true for 404 and false for 500 or network errors`() = runTest {
+    fun `canLoadFixture is true across error scenarios including 404, 500, and network outages`() = runTest {
         val repo = FakeRepository().apply {
             resultToReturn = LotteryResult.Error(
                 cause = IllegalStateException("Not Found"),
@@ -115,7 +115,7 @@ class DrawResultsViewModelTest {
             assertTrue(error404.canLoadFixture, "404 must allow loading fixtures")
             assertEquals(DrawResultsViewModel.ERROR_HTTP_404, error404.message)
 
-            // Case 2: 500 -> canLoadFixture must be false
+            // Case 2: 500 -> canLoadFixture must also be true
             repo.resultToReturn = LotteryResult.Error(
                 cause = IllegalStateException("Internal Server Error"),
                 statusCode = 500,
@@ -128,10 +128,10 @@ class DrawResultsViewModelTest {
 
             val error500 = awaitItem() as DrawResultsUiState.Error
             assertEquals(500, error500.statusCode)
-            assertFalse(error500.canLoadFixture, "500 server error must not offer fixture loading")
+            assertTrue(error500.canLoadFixture, "500 server error must offer fixture loading")
             assertEquals(DrawResultsViewModel.ERROR_SERVER_ERROR, error500.message)
 
-            // Case 3: Network exception (no status code) -> canLoadFixture must be false
+            // Case 3: Network exception (no status code) -> canLoadFixture must also be true
             repo.resultToReturn = LotteryResult.Error(
                 cause = IllegalStateException("No internet connection"),
                 statusCode = null,
@@ -144,7 +144,7 @@ class DrawResultsViewModelTest {
 
             val errorNetwork = awaitItem() as DrawResultsUiState.Error
             assertNull(errorNetwork.statusCode)
-            assertFalse(errorNetwork.canLoadFixture, "Network outage must not offer fixture loading")
+            assertTrue(errorNetwork.canLoadFixture, "Network outage must offer fixture loading")
             assertEquals(DrawResultsViewModel.ERROR_NO_CONNECTION, errorNetwork.message)
         }
     }

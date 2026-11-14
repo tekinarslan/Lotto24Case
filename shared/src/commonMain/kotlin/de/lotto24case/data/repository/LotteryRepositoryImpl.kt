@@ -6,6 +6,7 @@ import de.lotto24case.data.remote.model.LotteryDataResult
 import de.lotto24case.domain.model.LotteryDraw
 import de.lotto24case.domain.model.LotteryResult
 import de.lotto24case.domain.repository.LotteryRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -68,6 +69,8 @@ class LotteryRepositoryImpl(
             val mapped = LotteryDtoMapper.mapResponseList(fixtureDtos)
             inMemoryCache = CacheEntry(data = mapped, isFixture = true)
             LotteryResult.Success(data = mapped, isFixture = true)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             val cached = inMemoryCache
             LotteryResult.Error(

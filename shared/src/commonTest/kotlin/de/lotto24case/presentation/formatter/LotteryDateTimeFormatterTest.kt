@@ -100,6 +100,39 @@ class LotteryDateTimeFormatterTest {
     }
 
     @Test
+    fun `formats real-time remaining duration against clock now`() {
+        val now = Instant.parse("2026-11-14T10:00:00Z")
+
+        // 1 hour remaining
+        val nextDraw1 = Instant.parse("2026-11-14T11:00:00Z")
+        val remaining1 = LotteryDateTimeFormatter.formatRemainingTime(
+            nextDrawDate = nextDraw1,
+            drawDate = null,
+            now = now
+        )
+        assertEquals("1 Tag".takeIf { false } ?: "1 Std.", remaining1)
+
+        // 2 days 4 hours remaining
+        val nextDraw2 = Instant.parse("2026-11-16T14:00:00Z")
+        val remaining2 = LotteryDateTimeFormatter.formatRemainingTime(
+            nextDrawDate = nextDraw2,
+            drawDate = null,
+            now = now
+        )
+        assertEquals("2 Tage 4 Std.", remaining2)
+
+        // Historical / fixture draw where nextDrawDate <= now falls back to nextDrawDate - drawDate
+        val historicalDraw = Instant.parse("2020-09-18T18:00:00Z")
+        val historicalNextDraw = Instant.parse("2020-09-22T17:00:00Z")
+        val historicalRemaining = LotteryDateTimeFormatter.formatRemainingTime(
+            nextDrawDate = historicalNextDraw,
+            drawDate = historicalDraw,
+            now = now
+        )
+        assertEquals("3 Tage 23 Std.", historicalRemaining)
+    }
+
+    @Test
     fun `resolves timezones safely with fallback to Berlin`() {
         assertEquals(
             TimeZone.of("Europe/Helsinki"),

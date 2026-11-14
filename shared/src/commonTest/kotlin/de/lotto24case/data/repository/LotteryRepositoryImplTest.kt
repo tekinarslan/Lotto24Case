@@ -6,10 +6,12 @@ import de.lotto24case.data.remote.dto.LastDrawDto
 import de.lotto24case.data.remote.dto.LotteryResponseDto
 import de.lotto24case.data.remote.model.LotteryDataResult
 import de.lotto24case.domain.model.LotteryResult
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -191,5 +193,23 @@ class LotteryRepositoryImplTest {
         assertTrue(errorItem is LotteryResult.Error)
         assertNotNull(errorItem.cachedData)
         assertTrue(errorItem.isCachedDataFixture, "Cached data in error must indicate it is fixture data")
+    }
+
+    @Test
+    fun `loadFixtureResults rethrows CancellationException when coroutine is cancelled`() = runTest {
+        val testDispatcher = StandardTestDispatcher(testScheduler)
+        val fakeApi = object : Lotto24ApiService {
+            override suspend fun getAggregatedDrawInfo(lotteries: String): LotteryDataResult =
+                LotteryDataResult.Live(emptyList())
+
+            override fun getFixtureDrawInfo(): List<LotteryResponseDto> {
+                throw CancellationException("Fixture load cancelled")
+            }
+        }
+        val repository = LotteryRepositoryImpl(fakeApi, testDispatcher)
+
+        assertFailsWith<CancellationException> {
+            repository.loadFixtureResults()
+        }
     }
 }

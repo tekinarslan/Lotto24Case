@@ -11,9 +11,11 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 
 class Lotto24ApiServiceTest {
@@ -113,5 +115,19 @@ class Lotto24ApiServiceTest {
         assertEquals(2, fixtures.size)
         assertEquals("6aus49", fixtures[0].lottery)
         assertEquals("eurojackpot", fixtures[1].lottery)
+    }
+
+    @Test
+    fun `getAggregatedDrawInfo rethrows CancellationException when coroutine is cancelled`() = runTest {
+        val mockEngine = MockEngine {
+            throw CancellationException("Request cancelled")
+        }
+
+        val client = HttpClient(mockEngine)
+        val apiService = Lotto24ApiServiceImpl(httpClient = client, baseUrl = "https://mock.lotto24.de")
+
+        assertFailsWith<CancellationException> {
+            apiService.getAggregatedDrawInfo()
+        }
     }
 }

@@ -2,18 +2,13 @@ package de.lotto24case.presentation.ui.component
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,13 +35,14 @@ import kotlin.math.sin
 import kotlinx.coroutines.delay
 
 /**
- * High-fidelity 3D Lottery Ball with drop-and-settle spring entrance and tactile press physics:
+ * High-fidelity 3D Lottery Ball with drop-and-settle spring entrance:
  * - 3D Spherical Rendering: Semantic highlight and shadow gradient with top-left specular illumination.
  *   Regular balls use [AuraColorScheme.ballRegularHighlight] and [AuraColorScheme.ballRegularShadow]
  *   to ensure crisp 3D depth in both Light and Dark modes.
- * - Single-Progress Performance Architecture: Instead of multiple Animatable coroutines, each ball uses
- *   a SINGLE Animatable progress (0f -> 1f) driven by Spring physics. Translation, rotation, squash/stretch,
- *   and alpha are cleanly derived from progress in the Draw phase via [Modifier.graphicsLayer].
+ * - Single-Progress Performance Architecture: Each ball uses a SINGLE Animatable progress (0f -> 1f)
+ *   driven by Spring physics. Translation, rotation, squash/stretch, and alpha are cleanly derived
+ *   from progress in the Draw phase via [Modifier.graphicsLayer].
+ * - Non-interactive / Non-intercepting: Passes pointer/touch events to parent container (e.g. LotteryCard).
  * - Settle Guarantee: Guaranteed convergence to translationY=0, scale=1, rotation=0, alpha=1.
  * - Colors derived from [AuraTheme.colors].
  */
@@ -55,25 +51,12 @@ fun LotteryBall(
     model: BallUiModel,
     modifier: Modifier = Modifier,
     animationKey: String = "",
-    size: Dp = 38.dp,
-    onClick: () -> Unit = {}
+    size: Dp = 38.dp
 ) {
     val colors = AuraTheme.colors
     val density = LocalDensity.current
 
-    // 1. Interactive Press Animation (independent from entrance animation)
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val pressScale by animateFloatAsState(
-        targetValue = if (isPressed) 1.15f else 1.0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "BallPressScale"
-    )
-
-    // 2. Single Animation Progress (0f -> 1f) with Spring Physics
+    // Single Animation Progress (0f -> 1f) with Spring Physics
     // Eliminates multiple coroutines and animatables for silky smooth 60/120fps iOS & Android performance
     val entranceProgress = remember { Animatable(0f) }
 
@@ -160,8 +143,8 @@ fun LotteryBall(
                 val impactPhase = ((p - 0.75f) / 0.25f).coerceIn(0f, 1f)
                 val squashAmount = if (p in 0.75f..1f) sin(impactPhase * kotlin.math.PI.toFloat()) * 0.05f else 0f
 
-                scaleX = pressScale * (1f + squashAmount)
-                scaleY = pressScale * (1f - squashAmount)
+                scaleX = 1f + squashAmount
+                scaleY = 1f - squashAmount
 
                 // Derived alpha: smooth fade in over first 40% of progress
                 alpha = (p * 2.5f).coerceIn(0.15f, 1f)
@@ -201,11 +184,6 @@ fun LotteryBall(
                     }
                 }
             }
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
-            )
             .semantics {
                 contentDescription = "$typeLabel ${model.number}"
             },

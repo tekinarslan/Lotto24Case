@@ -3,6 +3,7 @@ package de.lotto24case.presentation.formatter
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
 
@@ -52,17 +53,28 @@ object LotteryDateTimeFormatter {
      * Calculates the remaining duration until the next draw as German interval pill text:
      * e.g. "3 Tage 23 Std.", "4 Tage 18 Std.", "14 Std. 30 Min."
      *
-     * Calculated deterministically from API timestamps (nextDrawDate - drawDate) without runtime tickers.
+     * - For live future draws (nextDrawDate > now): calculates real-time duration (nextDrawDate - now).
+     * - For historical/fixture draws where nextDrawDate <= now: falls back to (nextDrawDate - drawDate)
+     *   to preserve mockup/fixture presentation without showing empty or negative strings.
      */
     fun formatRemainingTime(
         nextDrawDate: Instant?,
-        drawDate: Instant?
+        drawDate: Instant?,
+        now: Instant = Clock.System.now()
     ): String? {
-        if (nextDrawDate == null || drawDate == null) return null
-        if (nextDrawDate <= drawDate) return null
+        if (nextDrawDate == null) return null
 
-        val duration: Duration = nextDrawDate - drawDate
-        val totalSeconds = duration.inWholeSeconds
+        val targetDuration: Duration = if (nextDrawDate > now) {
+            nextDrawDate - now
+        } else {
+            if (drawDate != null && nextDrawDate > drawDate) {
+                nextDrawDate - drawDate
+            } else {
+                return null
+            }
+        }
+
+        val totalSeconds = targetDuration.inWholeSeconds
         if (totalSeconds <= 0) return null
 
         val days = totalSeconds / 86400

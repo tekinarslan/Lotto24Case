@@ -7,6 +7,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
+import kotlinx.coroutines.CancellationException
 
 /**
  * Service interface for querying Lotto24 public drawinfo endpoints.
@@ -60,6 +61,8 @@ class Lotto24ApiServiceImpl(
                     statusCode = statusCode
                 )
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LotteryDataResult.Error(cause = e)
         }
