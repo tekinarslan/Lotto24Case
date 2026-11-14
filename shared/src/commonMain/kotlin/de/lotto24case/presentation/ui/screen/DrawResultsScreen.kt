@@ -35,12 +35,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.lotto24case.navigation.LocalExternalNavigator
 import de.lotto24case.presentation.model.LotteryCardUiModel
 import de.lotto24case.presentation.state.DrawResultsUiState
 import de.lotto24case.presentation.theme.AuraSpacing
@@ -66,19 +66,10 @@ fun DrawResultsRoute(
 ) {
     val viewModel: DrawResultsViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val uriHandler = LocalUriHandler.current
+    val externalNavigator = LocalExternalNavigator.current
 
     val defaultCardClickHandler: (LotteryCardUiModel) -> Unit = onCardClick ?: { card ->
-        val url = when (card.id.lowercase()) {
-            "6aus49" -> "https://www.lotto24.de/lotto-6aus49/zahlen-quoten/"
-            "eurojackpot" -> "https://www.lotto24.de/eurojackpot/zahlen-quoten/"
-            else -> "https://www.lotto24.de/"
-        }
-        try {
-            uriHandler.openUri(url)
-        } catch (_: Exception) {
-            // Safe fallback if browser intent is not resolved
-        }
+        externalNavigator.openLotteryUrl(card.id)
     }
 
     DrawResultsScreen(
@@ -124,7 +115,6 @@ fun DrawResultsScreen(
  * - Pull-to-refresh on both success and error states.
  * - Colors resolved semantically via [AuraTheme.colors].
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DrawResultsContent(
     uiState: DrawResultsUiState,

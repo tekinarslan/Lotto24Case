@@ -3,12 +3,15 @@ package de.lotto24case
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import de.lotto24case.navigation.LocalExternalNavigator
+import de.lotto24case.navigation.rememberExternalNavigator
 import de.lotto24case.presentation.theme.AuraLottoTheme
 import de.lotto24case.presentation.ui.pullcord.PullCordColors
 import de.lotto24case.presentation.ui.pullcord.PullCordLamp
@@ -18,7 +21,8 @@ import de.lotto24case.presentation.ui.screen.DrawResultsRoute
 /**
  * Main cross-platform entry point Composable for Lotto24Case.
  *
- * Wraps the app in [PullCordLamp] interactive theme toggle and [AuraLottoTheme].
+ * Wraps the app in [PullCordLamp] interactive theme toggle, [AuraLottoTheme],
+ * and provides [LocalExternalNavigator] for cross-platform URL/intent handling.
  */
 @Composable
 fun App() {
@@ -26,6 +30,7 @@ fun App() {
     var isDarkTheme by rememberSaveable { mutableStateOf(systemDark) }
 
     val pullCordState = rememberPullCordState(lit = isDarkTheme)
+    val externalNavigator = rememberExternalNavigator()
 
     LaunchedEffect(isDarkTheme) {
         if (pullCordState.lit != isDarkTheme) {
@@ -33,16 +38,18 @@ fun App() {
         }
     }
 
-    PullCordLamp(
-        state = pullCordState,
-        across = 0.88f, // Positioned at top-right
-        onSwitch = { lit ->
-            isDarkTheme = lit
-        },
-        modifier = Modifier.fillMaxSize()
-    ) { lit ->
-        AuraLottoTheme(darkTheme = lit) {
-            DrawResultsRoute(modifier = Modifier.fillMaxSize())
+    CompositionLocalProvider(LocalExternalNavigator provides externalNavigator) {
+        PullCordLamp(
+            state = pullCordState,
+            across = 0.88f, // Positioned at top-right
+            onSwitch = { lit ->
+                isDarkTheme = lit
+            },
+            modifier = Modifier.fillMaxSize()
+        ) { lit ->
+            AuraLottoTheme(darkTheme = lit) {
+                DrawResultsRoute(modifier = Modifier.fillMaxSize())
+            }
         }
     }
 }
