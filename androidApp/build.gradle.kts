@@ -27,6 +27,8 @@ dependencies {
     implementation(libs.androidx.glance)
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)
+    implementation(libs.androidx.glance.preview)
+    implementation(libs.androidx.glance.appwidget.preview)
 
     // Screenshot Testing (Roborazzi + ComposablePreviewScanner + Robolectric)
     testImplementation(libs.junit)
@@ -80,11 +82,5 @@ android {
                 test.systemProperties["robolectric.pixelCopyRenderMode"] = "hardware"
             }
         }
-    }
-}
-
-androidComponents {
-    beforeVariants { variantBuilder ->
-        (variantBuilder as? HasHostTestsBuilder)?.hostTests?.get(HostTestBuilder.UNIT_TEST_TYPE)?.enable = true
     }
 }

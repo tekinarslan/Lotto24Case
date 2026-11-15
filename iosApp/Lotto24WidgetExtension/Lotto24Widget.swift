@@ -2,54 +2,74 @@ import WidgetKit
 import SwiftUI
 import Shared
 
-/**
- * Timeline entry wrapping the shared [WidgetDrawState] list from the KMP core.
- */
 struct Lotto24WidgetEntry: TimelineEntry {
     let date: Date
     let drawStates: [WidgetDrawState]
 }
 
-/**
- * Timeline provider for Lotto24 WidgetKit.
- *
- * Resolves live, cached, or fallback draw results from the shared KMP core
- * via [Lotto24WidgetHelper], ensuring full parity with Android Jetpack Glance.
- */
 struct Lotto24WidgetProvider: TimelineProvider {
-
     func placeholder(in context: Context) -> Lotto24WidgetEntry {
         Lotto24WidgetEntry(date: Date(), drawStates: fallbackStates)
     }
 
-    func getSnapshot(in context: Context, completion: @escaping (Lotto24WidgetEntry) -> Void) {
+    func getSnapshot(
+        in context: Context,
+        completion: @escaping (Lotto24WidgetEntry) -> Void
+    ) {
         Task {
             let states: [WidgetDrawState]
+
             do {
-                let result = try await Lotto24WidgetHelper.shared.getWidgetDrawData(forceRefresh: false)
+                let result = try await Lotto24WidgetHelper.shared
+                    .getWidgetDrawData(forceRefresh: false)
+
                 states = result.isEmpty ? fallbackStates : result
             } catch {
                 states = fallbackStates
             }
-            completion(Lotto24WidgetEntry(date: Date(), drawStates: states))
+
+            completion(
+                Lotto24WidgetEntry(
+                    date: Date(),
+                    drawStates: states
+                )
+            )
         }
     }
 
-    func getTimeline(in context: Context, completion: @escaping (Timeline<Lotto24WidgetEntry>) -> Void) {
+    func getTimeline(
+        in context: Context,
+        completion: @escaping (Timeline<Lotto24WidgetEntry>) -> Void
+    ) {
         Task {
             let states: [WidgetDrawState]
+
             do {
-                let result = try await Lotto24WidgetHelper.shared.getWidgetDrawData(forceRefresh: false)
+                let result = try await Lotto24WidgetHelper.shared
+                    .getWidgetDrawData(forceRefresh: false)
+
                 states = result.isEmpty ? fallbackStates : result
             } catch {
                 states = fallbackStates
             }
 
-            // Periodic refresh every 30 minutes
-            let nextUpdate = Calendar.current.date(byAdding: .minute, value: 30, to: Date()) ?? Date()
-            let entry = Lotto24WidgetEntry(date: Date(), drawStates: states)
-            let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
-            completion(timeline)
+            let entry = Lotto24WidgetEntry(
+                date: Date(),
+                drawStates: states
+            )
+
+            let nextUpdate = Calendar.current.date(
+                byAdding: .minute,
+                value: 30,
+                to: Date()
+            ) ?? Date()
+
+            completion(
+                Timeline(
+                    entries: [entry],
+                    policy: .after(nextUpdate)
+                )
+            )
         }
     }
 
@@ -68,8 +88,14 @@ struct Lotto24WidgetProvider: TimelineProvider {
                 regularNumbers: [4, 19, 24, 43, 44, 45],
                 specialNumbers: [7],
                 supplementaryGames: [
-                    WidgetSupplementaryGame(name: "Spiel 77", winningNumber: "9415812"),
-                    WidgetSupplementaryGame(name: "SUPER6", winningNumber: "381144")
+                    WidgetSupplementaryGame(
+                        name: "Spiel 77",
+                        winningNumber: "9415812"
+                    ),
+                    WidgetSupplementaryGame(
+                        name: "SUPER6",
+                        winningNumber: "381144"
+                    )
                 ],
                 anchorLabel: "6AUS49",
                 isFixture: false,
@@ -96,302 +122,690 @@ struct Lotto24WidgetProvider: TimelineProvider {
     }
 }
 
-/**
- * SwiftUI View representing the in-app Aura Lotto dual card design without animations.
- * Adaptively renders large full cards in `.systemLarge` and a compact layout in `.systemMedium`.
- */
 struct Lotto24WidgetEntryView: View {
-    @Environment(\.widgetFamily) var family
-    var entry: Lotto24WidgetProvider.Entry
+    @Environment(\.widgetFamily) private var family
+
+    let entry: Lotto24WidgetProvider.Entry
+
+    private var isLarge: Bool {
+        family == .systemLarge
+    }
 
     var body: some View {
-        VStack(spacing: family == .systemLarge ? 6 : 4) {
-            ForEach(entry.drawStates, id: \.lotteryId) { drawState in
-                HomeStyleCardView(drawState: drawState, isLarge: family == .systemLarge)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+        VStack(spacing: isLarge ? 10 : 6) {
+            ForEach(entry.drawStates, id: \.lotteryId) { state in
+                LotteryWidgetCard(
+                    drawState: state,
+                    isLarge: isLarge
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(red: 0.95, green: 0.96, blue: 0.98)) // App canvas (#F1F5F9)
+        .containerBackground(.clear, for: .widget)
     }
 }
 
-/**
- * Matches the home app screen's [LotteryCard] design in SwiftUI:
- * - Left vertical Golden Anchor Strip filled 100% height across card
- * - Adaptive ball tray utilizing the full horizontal width with controlled spacing & capped diameter
- * - Main Card Body with Title, Date, Supplementary Games, Sunken Ball Tray & Next Draw Footer
- */
-private struct HomeStyleCardView: View {
+// MARK: - AuraTheme Semantic Palette (1:1 Parity with Android)
+private enum AuraWidgetPalette {
+    static func adaptive(light: Color, dark: Color) -> Color {
+        Color(
+            UIColor { traits in
+                traits.userInterfaceStyle == .dark ? UIColor(dark) : UIColor(light)
+            }
+        )
+    }
+
+    static let surface = adaptive(
+        light: Color(hex: 0xFFFFFF),
+        dark: Color(hex: 0x0F172A)
+    )
+    static let surfaceBorder = adaptive(
+        light: Color(hex: 0xE2E8F0),
+        dark: Color(hex: 0x1E293B)
+    )
+    static let surfaceContainer = adaptive(
+        light: Color(hex: 0xF8FAFC),
+        dark: Color(hex: 0x1E293B)
+    )
+    static let surfaceContainerLow = adaptive(
+        light: Color(hex: 0xF1F5F9),
+        dark: Color(hex: 0x020617)
+    )
+
+    static let onSurface = adaptive(
+        light: Color(hex: 0x0F172A),
+        dark: Color(hex: 0xF8FAFC)
+    )
+    static let onSurfaceVariant = adaptive(
+        light: Color(hex: 0x475569),
+        dark: Color(hex: 0xCBD5E1)
+    )
+    static let onSurfaceSubtle = adaptive(
+        light: Color(hex: 0x64748B),
+        dark: Color(hex: 0x94A3B8)
+    )
+    static let primary = adaptive(
+        light: Color(hex: 0xD97706),
+        dark: Color(hex: 0xFBBF24)
+    )
+
+    static let regularBallBg = adaptive(
+        light: Color(hex: 0xFFFFFF),
+        dark: Color(hex: 0x1E293B)
+    )
+    static let regularBallBorder = adaptive(
+        light: Color(hex: 0xE2E8F0),
+        dark: Color(hex: 0x334155)
+    )
+}
+
+private struct LotteryWidgetCard: View {
     let drawState: WidgetDrawState
     let isLarge: Bool
 
-    private var isLotto6aus49: Bool {
+    private var isLotto: Bool {
         drawState.lotteryId.localizedCaseInsensitiveContains("6aus49")
     }
 
-    private var anchorGradient: LinearGradient {
-        if isLotto6aus49 {
-            return LinearGradient(
-                colors: [Color(red: 0.90, green: 0.66, blue: 0.12), Color(red: 0.78, green: 0.45, blue: 0.05)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        } else {
-            return LinearGradient(
-                colors: [Color(red: 0.85, green: 0.47, blue: 0.02), Color(red: 0.65, green: 0.30, blue: 0.02)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
+    private var anchorWidth: CGFloat {
+        isLarge ? 56 : 46
+    }
+
+    private var resolvedSpecialBallLabel: String? {
+        if let label = drawState.specialBallLabel, !label.trimmingCharacters(in: .whitespaces).isEmpty {
+            return label
         }
+        guard !drawState.specialNumbers.isEmpty else { return nil }
+        if isLotto, let first = drawState.specialNumbers.first {
+            return "Superzahl: \(first)"
+        }
+        return "\(drawState.specialNumbers.count) EUROZAHLEN"
     }
 
     var body: some View {
         HStack(spacing: 0) {
-            // ==================== 1. LEFT GOLDEN ANCHOR STRIP ====================
+            anchorView
+            contentView
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(AuraWidgetPalette.surface)
+        .clipShape(
+            RoundedRectangle(
+                cornerRadius: 16,
+                style: .continuous
+            )
+        )
+        .overlay(
+            RoundedRectangle(
+                cornerRadius: 16,
+                style: .continuous
+            )
+            .stroke(AuraWidgetPalette.surfaceBorder, lineWidth: 1)
+        )
+        .shadow(
+            color: Color.black.opacity(0.08),
+            radius: 4,
+            x: 0,
+            y: 2
+        )
+    }
+
+    // ==================== 1. LEFT GOLDEN JACKPOT ANCHOR STRIP ====================
+    private var anchorView: some View {
+        VStack(spacing: 2) {
+            // Top Logo / Monogram (Circle for 6aus49, Rounded 8pt for Eurojackpot)
             VStack(spacing: 2) {
-                // Top Monogram
                 ZStack {
-                    Circle()
-                        .fill(Color.black.opacity(0.18))
-                        .frame(width: isLarge ? 22 : 18, height: isLarge ? 22 : 18)
-                    Text(isLotto6aus49 ? "🍀" : "E")
-                        .font(.system(size: isLarge ? 11 : 9, weight: .bold))
+                    if isLotto {
+                        Circle()
+                            .fill(Color.white.opacity(0.20))
+                            .frame(
+                                width: isLarge ? 32 : 24,
+                                height: isLarge ? 32 : 24
+                            )
+                    } else {
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(Color.white.opacity(0.20))
+                            .frame(
+                                width: isLarge ? 32 : 24,
+                                height: isLarge ? 32 : 24
+                            )
+                    }
+
+                    Text(isLotto ? "🍀" : "E")
+                        .font(
+                            .system(
+                                size: isLarge ? (isLotto ? 15 : 17) : 12,
+                                weight: .black
+                            )
+                        )
                         .foregroundColor(.white)
                 }
 
-                Text(drawState.anchorLabel)
-                    .font(.system(size: isLarge ? 7 : 6, weight: .heavy))
-                    .foregroundColor(Color(red: 0.99, green: 0.95, blue: 0.78))
+                Text(isLotto ? "6AUS49" : "EURO")
+                    .font(
+                        .system(
+                            size: isLarge ? 9 : 8,
+                            weight: .heavy
+                        )
+                    )
+                    .tracking(0.5)
+                    .foregroundColor(Color(hex: 0xFEF3C7))
+            }
 
-                Spacer(minLength: 1)
+            Spacer(minLength: 0)
 
-                // Jackpot Value
+            // Vertical Jackpot Amount
+            VStack(spacing: 0) {
                 Text(drawState.jackpotAmountValue ?? "–")
-                    .font(.system(size: isLarge ? 17 : 14, weight: .black))
+                    .font(
+                        .system(
+                            size: isLarge ? 25 : 18,
+                            weight: .black
+                        )
+                    )
                     .foregroundColor(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
 
                 Text(drawState.jackpotUnitValue ?? "MIO")
-                    .font(.system(size: isLarge ? 9 : 7, weight: .bold))
-                    .foregroundColor(Color(red: 0.99, green: 0.95, blue: 0.78))
+                    .font(
+                        .system(
+                            size: isLarge ? 13 : 10,
+                            weight: .black
+                        )
+                    )
+                    .tracking(0.5)
+                    .foregroundColor(Color(hex: 0xFEF3C7))
 
                 Text("EURO")
-                    .font(.system(size: isLarge ? 7 : 5, weight: .medium))
-                    .foregroundColor(Color(red: 0.99, green: 0.90, blue: 0.54))
-
-                Spacer(minLength: 1)
-
-                // Bottom Seal
-                ZStack {
-                    Circle()
-                        .fill(Color.black.opacity(0.14))
-                        .frame(width: isLarge ? 16 : 13, height: isLarge ? 16 : 13)
-                    Text(isLotto6aus49 ? "✓" : "★")
-                        .font(.system(size: isLarge ? 9 : 7, weight: .bold))
-                        .foregroundColor(Color(red: 0.99, green: 0.95, blue: 0.78))
-                }
+                    .font(
+                        .system(
+                            size: isLarge ? 8 : 7,
+                            weight: .bold
+                        )
+                    )
+                    .tracking(1.0)
+                    .foregroundColor(Color(hex: 0xFDE68A))
             }
-            .frame(width: isLarge ? 50 : 42)
-            .frame(maxHeight: .infinity)
-            .padding(.vertical, isLarge ? 6 : 4)
-            .background(anchorGradient)
 
-            // ==================== 2. MAIN CARD BODY ====================
-            VStack(alignment: .leading, spacing: isLarge ? 3 : 2) {
-                // Header: Title & Date
-                HStack {
-                    Text(drawState.title)
-                        .font(.system(size: isLarge ? 12 : 10, weight: .bold))
-                        .foregroundColor(Color(red: 0.06, green: 0.09, blue: 0.16))
+            Spacer(minLength: 0)
 
-                    Spacer()
+            // Bottom Seal Mark
+            ZStack {
+                Circle()
+                    .fill(Color.white.opacity(0.15))
+                    .frame(
+                        width: isLarge ? 20 : 16,
+                        height: isLarge ? 20 : 16
+                    )
 
-                    Text("📅 \(drawState.formattedDate)")
-                        .font(.system(size: isLarge ? 8 : 7, weight: .medium))
-                        .foregroundColor(Color(red: 0.39, green: 0.45, blue: 0.55))
-                }
-
-                // Supplementary Games (LOTTO 6aus49 only, visible in Large Widget)
-                if isLarge && !drawState.supplementaryGames.isEmpty {
-                    HStack(spacing: 6) {
-                        ForEach(drawState.supplementaryGames, id: \.name) { game in
-                            HStack(spacing: 2) {
-                                Text("\(game.name):")
-                                    .font(.system(size: 8, weight: .medium))
-                                    .foregroundColor(Color(red: 0.39, green: 0.45, blue: 0.55))
-                                Text(game.winningNumber)
-                                    .font(.system(size: 8, weight: .black))
-                                    .foregroundColor(game.name.localizedCaseInsensitiveContains("77") ? Color(red: 0.85, green: 0.47, blue: 0.02) : Color(red: 0.86, green: 0.15, blue: 0.15))
-                            }
-                        }
-                    }
-                }
-
-                // Tray Header Labels
-                HStack {
-                    Text(drawState.mainBallsLabel)
-                        .font(.system(size: isLarge ? 7 : 6, weight: .bold))
-                        .foregroundColor(Color(red: 0.58, green: 0.64, blue: 0.72))
-
-                    Spacer()
-
-                    if let specialLabel = drawState.specialBallLabel {
-                        Text(specialLabel)
-                            .font(.system(size: isLarge ? 7 : 6, weight: .bold))
-                            .foregroundColor(isLotto6aus49 ? Color(red: 0.86, green: 0.15, blue: 0.15) : Color(red: 0.85, green: 0.47, blue: 0.02))
-                    }
-                }
-
-                // Sunken Ball Tray (Adaptive Width, Controlled Spacing, Capped Ball Size)
-                AdaptiveBallTrayView(
-                    regularNumbers: drawState.regularNumbers.map { Int(truncating: $0) },
-                    specialNumbers: drawState.specialNumbers.map { Int(truncating: $0) },
-                    isLotto6aus49: isLotto6aus49,
-                    isLarge: isLarge
-                )
-
-                // Next Draw Section (in Large Widget)
-                if isLarge, let nextDraw = drawState.nextDrawText {
-                    HStack {
-                        Spacer()
-                        Text(nextDraw)
-                            .font(.system(size: 8, weight: .bold))
-                            .foregroundColor(Color(red: 0.11, green: 0.31, blue: 0.85))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color(red: 0.93, green: 0.95, blue: 1.0))
-                            .cornerRadius(4)
-                    }
-                }
+                Text(isLotto ? "✓" : "★")
+                    .font(
+                        .system(
+                            size: isLarge ? 10 : 9,
+                            weight: .bold
+                        )
+                    )
+                    .foregroundColor(Color(hex: 0xFEF3C7))
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.horizontal, isLarge ? 8 : 6)
-            .padding(.vertical, isLarge ? 6 : 4)
-            .background(Color.white)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .cornerRadius(12)
-        .clipped()
-        .shadow(color: Color.black.opacity(0.06), radius: 3, x: 0, y: 1)
+        .frame(width: anchorWidth)
+        .frame(maxHeight: .infinity)
+        .padding(.vertical, isLarge ? 10 : 6)
+        .padding(.horizontal, 4)
+        .background(anchorGradient)
+    }
+
+    private var anchorGradient: LinearGradient {
+        if isLotto {
+            return LinearGradient(
+                colors: [
+                    Color(hex: 0xF59E0B),
+                    Color(hex: 0xD97706)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        }
+
+        return LinearGradient(
+            colors: [
+                Color(hex: 0xB45309),
+                Color(hex: 0x78350F)
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    }
+
+    // ==================== 2. MAIN CARD BODY ====================
+    private var contentView: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Upper Content Container
+            VStack(alignment: .leading, spacing: isLarge ? 7 : 4) {
+                headerRow
+                ballSection
+            }
+            .padding(.horizontal, isLarge ? 12 : 8)
+            .padding(.top, isLarge ? 10 : 6)
+
+            Spacer(minLength: 4)
+
+            // Bottom-Right Next Draw Pill (flush to bottom-trailing corner)
+            if let nextDraw = drawState.nextDrawText {
+                HStack {
+                    Spacer(minLength: 0)
+                    nextDrawPill(nextDraw)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(AuraWidgetPalette.surface)
+    }
+
+    private var headerRow: some View {
+        HStack(alignment: .top, spacing: 6) {
+            // Left: Dual-styled Title + Calendar Date
+            VStack(alignment: .leading, spacing: 2) {
+                if isLotto {
+                    HStack(alignment: .firstTextBaseline, spacing: 0) {
+                        Text("LOTTO ")
+                            .font(
+                                .system(
+                                    size: isLarge ? 17 : 14,
+                                    weight: .black
+                                )
+                            )
+                            .foregroundColor(AuraWidgetPalette.onSurface)
+
+                        Text("6aus49")
+                            .font(
+                                .system(
+                                    size: isLarge ? 13.5 : 11,
+                                    weight: .bold
+                                )
+                            )
+                            .foregroundColor(AuraWidgetPalette.primary)
+                    }
+                    .lineLimit(1)
+                } else {
+                    Text("Eurojackpot")
+                        .font(
+                            .system(
+                                size: isLarge ? 17 : 14,
+                                weight: .black
+                            )
+                        )
+                        .foregroundColor(AuraWidgetPalette.onSurface)
+                        .lineLimit(1)
+                }
+
+                HStack(spacing: 3) {
+                    Text("📅")
+                        .font(.system(size: isLarge ? 11 : 9.5))
+
+                    Text(drawState.formattedDate)
+                        .font(
+                            .system(
+                                size: isLarge ? 12.5 : 10.5,
+                                weight: .semibold
+                            )
+                        )
+                        .foregroundColor(AuraWidgetPalette.onSurfaceVariant)
+                        .lineLimit(1)
+                }
+            }
+
+            Spacer(minLength: 4)
+
+            // Top-Right Supplementary Games Pill (LOTTO 6aus49 only: Spiel 77, SUPER6)
+            if isLotto && !drawState.supplementaryGames.isEmpty {
+                supplementaryGamesView
+            }
+        }
+    }
+
+    private var supplementaryGamesView: some View {
+        VStack(alignment: .trailing, spacing: 2) {
+            ForEach(drawState.supplementaryGames, id: \.name) { game in
+                HStack(spacing: 3) {
+                    Text("\(game.name):")
+                        .font(
+                            .system(
+                                size: isLarge ? 9.5 : 8,
+                                weight: .medium
+                            )
+                        )
+                        .foregroundColor(AuraWidgetPalette.onSurfaceSubtle)
+
+                    Text(game.winningNumber)
+                        .font(
+                            .system(
+                                size: isLarge ? 9.5 : 8,
+                                weight: .heavy
+                            )
+                        )
+                        .tracking(0.4)
+                        .foregroundColor(
+                            game.name.localizedCaseInsensitiveContains("77")
+                                ? AuraWidgetPalette.adaptive(
+                                    light: Color(hex: 0xD97706),
+                                    dark: Color(hex: 0xFBBF24)
+                                )
+                                : AuraWidgetPalette.adaptive(
+                                    light: Color(hex: 0xDC2626),
+                                    dark: Color(hex: 0xF87171)
+                                )
+                        )
+                }
+                .lineLimit(1)
+            }
+        }
+        .padding(.horizontal, isLarge ? 7 : 5)
+        .padding(.vertical, isLarge ? 4 : 2)
+        .background(AuraWidgetPalette.surfaceContainer)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(AuraWidgetPalette.surfaceBorder, lineWidth: 1)
+        )
+    }
+
+    // ==================== 3. SUNKEN BALL TRAY ====================
+    private var ballSection: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text(drawState.mainBallsLabel)
+                    .font(
+                        .system(
+                            size: isLarge ? 10 : 8.5,
+                            weight: .bold
+                        )
+                    )
+                    .tracking(0.5)
+                    .foregroundColor(AuraWidgetPalette.onSurfaceSubtle)
+
+                Spacer(minLength: 4)
+
+                if let specialLabel = resolvedSpecialBallLabel {
+                    Text(specialLabel)
+                        .font(
+                            .system(
+                                size: isLarge ? 10 : 8.5,
+                                weight: .bold
+                            )
+                        )
+                        .tracking(isLotto ? 0 : 0.5)
+                        .foregroundColor(
+                            isLotto
+                                ? AuraWidgetPalette.adaptive(
+                                    light: Color(hex: 0xDC2626),
+                                    dark: Color(hex: 0xF87171)
+                                )
+                                : AuraWidgetPalette.adaptive(
+                                    light: Color(hex: 0xD97706),
+                                    dark: Color(hex: 0xFBBF24)
+                                )
+                        )
+                }
+            }
+
+            AdaptiveBallTray(
+                regularNumbers: drawState.regularNumbers.map { Int(truncating: $0) },
+                specialNumbers: drawState.specialNumbers.map { Int(truncating: $0) },
+                isLotto: isLotto,
+                isLarge: isLarge
+            )
+        }
+    }
+
+    // ==================== 4. BOTTOM STATUS (NEXT DRAW PILL) ====================
+    private func nextDrawPill(_ value: String) -> some View {
+        let prefix = "Nächste Ziehung:"
+        let hasPrefix = value.lowercased().hasPrefix(prefix.lowercased())
+        let datePart = hasPrefix
+            ? String(value.dropFirst(prefix.count)).trimmingCharacters(in: .whitespaces)
+            : value
+
+        let pillBg = isLotto
+            ? Color(hex: 0xCA8A04)
+            : Color(hex: 0x451A03)
+
+        let labelColor = isLotto
+            ? Color(hex: 0xFEF3C7)
+            : Color(hex: 0xFDE68A)
+
+        let dateColor = isLotto
+            ? Color.white
+            : AuraWidgetPalette.adaptive(
+                light: Color(hex: 0xF59E0B),
+                dark: Color(hex: 0xFBBF24)
+            )
+
+        return HStack(spacing: 0) {
+            if hasPrefix {
+                Text("Nächste Ziehung: ")
+                    .font(
+                        .system(
+                            size: isLarge ? 11 : 9,
+                            weight: .medium
+                        )
+                    )
+                    .foregroundColor(labelColor)
+            }
+
+            Text(datePart)
+                .font(
+                    .system(
+                        size: isLarge ? 11 : 9,
+                        weight: .bold
+                    )
+                )
+                .foregroundColor(dateColor)
+        }
+        .lineLimit(1)
+        .padding(.horizontal, isLarge ? 12 : 8)
+        .padding(.vertical, isLarge ? 4.5 : 3)
+        .background(pillBg)
+        .clipShape(
+            UnevenRoundedRectangle(
+                topLeadingRadius: isLarge ? 8 : 6,
+                bottomLeadingRadius: 0,
+                bottomTrailingRadius: 15,
+                topTrailingRadius: 0,
+                style: .continuous
+            )
+        )
     }
 }
 
-/**
- * Adaptive Ball Tray View:
- * Measures available width, dynamically sizes 7 balls (6+1 or 5+2),
- * and replaces unbounded flexible spacer with controlled proportional spacing.
- */
-private struct AdaptiveBallTrayView: View {
+private struct AdaptiveBallTray: View {
     let regularNumbers: [Int]
     let specialNumbers: [Int]
-    let isLotto6aus49: Bool
+    let isLotto: Bool
     let isLarge: Bool
 
     var body: some View {
-        GeometryReader { geometry in
-            let availableWidth = max(140.0, geometry.size.width)
-            let trayInnerPadding: CGFloat = 8.0 // 4pt on each side
-            let podPadding: CGFloat = 6.0 // 3pt on each side
-            let usableWidth = availableWidth - trayInnerPadding
+        GeometryReader { proxy in
+            let regularCount = max(regularNumbers.count, 1)
+            let specialCount = specialNumbers.count
+            let totalBalls = regularCount + specialCount
 
-            // 7 balls total across both 6+1 (LOTTO 6aus49) and 5+2 (Eurojackpot)
-            let baseGaps: CGFloat = 28.0
-            let rawDiameter = (usableWidth - baseGaps) / 7.0
-            let ballSize: CGFloat = min(isLarge ? 28.0 : 22.0, max(18.0, rawDiameter))
+            let trayHorizontalPadding: CGFloat = 10 // 5pt left + 5pt right
+            let podHorizontalPadding: CGFloat = specialCount > 0 ? 6 : 0 // 3pt left + 3pt right
+            let podInnerGaps: CGFloat = specialCount > 1 ? CGFloat(specialCount - 1) * 3.5 : 0
+            let podSeparatorGap: CGFloat = specialCount > 0 ? (isLarge ? 5 : 4) : 0
+            let minRegularGap: CGFloat = isLarge ? 3 : 2
+            let regularGapsCount = max(regularCount - 1, 0)
 
-            let remainingSpace = max(14.0, usableWidth - (ballSize * 7.0) - podPadding)
-            let interBallSpacing = min(6.0, max(2.5, remainingSpace / 8.0))
-            let podSeparatorGap = min(14.0, max(6.0, remainingSpace - (interBallSpacing * 5.0)))
+            let usableWidth = max(proxy.size.width - trayHorizontalPadding, 120)
+            let fixedReservedWidth = podHorizontalPadding
+                + podInnerGaps
+                + podSeparatorGap
+                + (minRegularGap * CGFloat(regularGapsCount))
+
+            let maxFitDiameter = (usableWidth - fixedReservedWidth) / CGFloat(max(totalBalls, 1))
+            let targetDiameter: CGFloat = isLarge ? 28 : 21
+            let minDiameter: CGFloat = isLarge ? 20 : 16
+            let ballSize = min(targetDiameter, max(minDiameter, maxFitDiameter))
+
+            let specialPodWidth: CGFloat = specialCount > 0
+                ? (ballSize * CGFloat(specialCount)) + podInnerGaps + podHorizontalPadding
+                : 0
+            let remainingForRegular = max(usableWidth - specialPodWidth - podSeparatorGap, 0)
+            let remainingForRegularGaps = max(remainingForRegular - (ballSize * CGFloat(regularCount)), 0)
+            let interBallGap: CGFloat = regularGapsCount > 0
+                ? min(isLarge ? 6 : 4, max(2, remainingForRegularGaps / CGFloat(regularGapsCount)))
+                : 0
 
             HStack(spacing: 0) {
                 // Regular Balls
-                ForEach(Array(regularNumbers.enumerated()), id: \.offset) { index, num in
-                    StaticBallView(
-                        number: num,
-                        backgroundColor: .white,
-                        textColor: Color(red: 0.06, green: 0.09, blue: 0.16),
-                        size: ballSize
-                    )
-                    if index < regularNumbers.count - 1 {
-                        Spacer().frame(width: interBallSpacing)
-                    }
-                }
-
-                // Controlled separator gap between regular balls and special pod
-                Spacer().frame(width: podSeparatorGap)
-
-                // Special Balls Pod (Contrast Capsule)
-                HStack(spacing: interBallSpacing) {
-                    ForEach(specialNumbers, id: \.self) { specialNum in
-                        StaticBallView(
-                            number: specialNum,
-                            backgroundColor: isLotto6aus49 ? Color(red: 0.86, green: 0.15, blue: 0.15) : Color(red: 0.85, green: 0.47, blue: 0.02),
-                            textColor: .white,
+                HStack(spacing: interBallGap) {
+                    ForEach(regularNumbers, id: \.self) { number in
+                        StaticBall(
+                            number: number,
+                            backgroundColor: AuraWidgetPalette.regularBallBg,
+                            borderColor: AuraWidgetPalette.regularBallBorder,
+                            textColor: AuraWidgetPalette.onSurface,
                             size: ballSize
                         )
                     }
                 }
-                .padding(.horizontal, 3)
-                .padding(.vertical, 2)
-                .background(isLotto6aus49 ? Color(red: 1.0, green: 0.89, blue: 0.89) : Color(red: 0.99, green: 0.95, blue: 0.78))
-                .cornerRadius(999)
+
+                // Special Balls Pod (Inner Contrast Capsule - Superzahl / Eurozahlen)
+                if !specialNumbers.isEmpty {
+                    Spacer(minLength: podSeparatorGap)
+
+                    let podBg = isLotto
+                        ? AuraWidgetPalette.adaptive(
+                            light: Color(hex: 0xFEE2E2),
+                            dark: Color(hex: 0x450A0A)
+                        )
+                        : AuraWidgetPalette.adaptive(
+                            light: Color(hex: 0xFEF3C7),
+                            dark: Color(hex: 0x451A03)
+                        )
+
+                    let podBorder = isLotto
+                        ? AuraWidgetPalette.adaptive(
+                            light: Color(hex: 0xFECACA),
+                            dark: Color(hex: 0x7F1D1D)
+                        )
+                        : AuraWidgetPalette.adaptive(
+                            light: Color(hex: 0xFDE68A),
+                            dark: Color(hex: 0x78350F)
+                        )
+
+                    let specialBallBg = isLotto
+                        ? AuraWidgetPalette.adaptive(
+                            light: Color(hex: 0xDC2626),
+                            dark: Color(hex: 0xEF4444)
+                        )
+                        : AuraWidgetPalette.adaptive(
+                            light: Color(hex: 0xD97706),
+                            dark: Color(hex: 0xF59E0B)
+                        )
+
+                    HStack(spacing: 3.5) {
+                        ForEach(specialNumbers, id: \.self) { number in
+                            StaticBall(
+                                number: number,
+                                backgroundColor: specialBallBg,
+                                borderColor: specialBallBg,
+                                textColor: .white,
+                                size: ballSize
+                            )
+                        }
+                    }
+                    .padding(.horizontal, 3)
+                    .padding(.vertical, 2)
+                    .background(podBg)
+                    .clipShape(Capsule())
+                    .overlay(
+                        Capsule()
+                            .stroke(podBorder, lineWidth: 1)
+                    )
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-            .padding(.horizontal, 4)
-            .padding(.vertical, isLarge ? 3 : 2)
-            .background(Color(red: 0.97, green: 0.98, blue: 0.99))
-            .cornerRadius(999)
+            .padding(.horizontal, 5)
+            .background(AuraWidgetPalette.surfaceContainerLow)
+            .clipShape(Capsule())
+            .overlay(
+                Capsule()
+                    .stroke(AuraWidgetPalette.surfaceBorder, lineWidth: 1)
+            )
         }
-        .frame(height: isLarge ? 34 : 26)
+        .frame(height: isLarge ? 38 : 28)
     }
 }
 
-/**
- * Static non-animated spherical ball view with font scaling proportionally to diameter.
- */
-private struct StaticBallView: View {
+private struct StaticBall: View {
     let number: Int
     let backgroundColor: Color
+    let borderColor: Color
     let textColor: Color
-    var size: CGFloat = 20
-
-    private var fontSize: CGFloat {
-        if size >= 26 {
-            return number >= 10 ? 10 : 11
-        } else if size >= 23 {
-            return number >= 10 ? 9 : 10
-        } else if size >= 20 {
-            return number >= 10 ? 8 : 9
-        } else {
-            return number >= 10 ? 7 : 8
-        }
-    }
+    let size: CGFloat
 
     var body: some View {
         Text("\(number)")
-            .font(.system(size: fontSize, weight: .bold))
+            .font(
+                .system(
+                    size: number >= 10 ? size * 0.42 : size * 0.46,
+                    weight: .bold
+                )
+            )
             .foregroundColor(textColor)
             .frame(width: size, height: size)
             .background(backgroundColor)
             .clipShape(Circle())
-            .overlay(Circle().stroke(Color.black.opacity(0.08), lineWidth: 0.5))
+            .overlay(
+                Circle()
+                    .stroke(borderColor, lineWidth: 1)
+            )
+            .shadow(
+                color: Color.black.opacity(0.08),
+                radius: 1.5,
+                y: 1
+            )
     }
 }
 
-/**
- * iOS Widget declaration for WidgetKit.
- */
+// MARK: - Hex Color Extension
+private extension Color {
+    init(hex: UInt, alpha: Double = 1.0) {
+        self.init(
+            .sRGB,
+            red: Double((hex >> 16) & 0xFF) / 255.0,
+            green: Double((hex >> 8) & 0xFF) / 255.0,
+            blue: Double(hex & 0xFF) / 255.0,
+            opacity: alpha
+        )
+    }
+}
+
 @main
 struct Lotto24Widget: Widget {
-    let kind: String = "Lotto24Widget"
+    let kind = "Lotto24Widget"
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: Lotto24WidgetProvider()) { entry in
+        StaticConfiguration(
+            kind: kind,
+            provider: Lotto24WidgetProvider()
+        ) { entry in
             Lotto24WidgetEntryView(entry: entry)
         }
-        .configurationDisplayName("Lotto24 Ziehungsergebnisse")
-        .description("Zeigt LOTTO 6aus49 und Eurojackpot Gewinnzahlen und Jackpots.")
-        .supportedFamilies([.systemMedium, .systemLarge])
+        .configurationDisplayName(
+            "Lotto24 Ziehungsergebnisse"
+        )
+        .description(
+            "Zeigt LOTTO 6aus49 und Eurojackpot Gewinnzahlen und Jackpots."
+        )
+        .supportedFamilies([
+            .systemLarge
+        ])
         .contentMarginsDisabled()
     }
 }

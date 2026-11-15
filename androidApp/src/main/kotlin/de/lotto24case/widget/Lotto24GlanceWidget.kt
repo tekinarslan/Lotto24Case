@@ -4,8 +4,6 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.coerceAtLeast
-import androidx.compose.ui.unit.coerceIn
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
@@ -15,9 +13,11 @@ import androidx.glance.LocalSize
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
+import androidx.glance.color.ColorProvider
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
@@ -30,10 +30,12 @@ import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import androidx.glance.layout.width
+import androidx.glance.preview.ExperimentalGlancePreviewApi
+import androidx.glance.preview.Preview
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
+import androidx.glance.unit.ColorProvider as GlanceColorProvider
 import de.lotto24case.MainActivity
 import de.lotto24case.widget.model.WidgetDrawState
 import de.lotto24case.widget.model.WidgetSupplementaryGame
@@ -41,30 +43,17 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 
-/**
- * Modern Jetpack Glance AppWidget displaying both LOTTO 6aus49 and Eurojackpot,
- * matching the exact in-app Aura Lotto card layout without animations.
- *
- * Fully static representation meeting Large Widget Card requirements:
- * - Measures available card width and dynamically calculates adaptive ball diameter for 6+1 and 5+2 layouts
- * - Replaces unbounded flexible spacers with controlled proportional spacing across the entire tray width
- * - Caps ball size (20dp..28dp) to prevent overflow while filling the horizontal tray span
- * - Left vertical Golden Anchor Strip filled 100% height across card
- * - Title and draw date
- * - Supplementary games (Spiel 77, SUPER6 for LOTTO 6aus49)
- * - Winning numbers with German semantic labels
- * - Sunken ball tray with regular balls and special ball pod
- * - Bottom footer with "Nächste Ziehung: [day, date]"
- */
 class Lotto24GlanceWidget : GlanceAppWidget() {
+
+    override val sizeMode: SizeMode = SizeMode.Exact
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val widgetStates: ImmutableList<WidgetDrawState> = try {
             Lotto24WidgetHelper.getWidgetDrawData(forceRefresh = false)
-                .ifEmpty { fallbackStates() }
+                .ifEmpty { sampleWidgetStates() }
                 .toImmutableList()
         } catch (_: Exception) {
-            fallbackStates()
+            sampleWidgetStates()
         }
 
         provideContent {
@@ -74,58 +63,68 @@ class Lotto24GlanceWidget : GlanceAppWidget() {
         }
     }
 
-    private fun fallbackStates(): ImmutableList<WidgetDrawState> = persistentListOf(
-        WidgetDrawState(
-            lotteryId = "6aus49",
-            title = "LOTTO 6aus49",
-            formattedDate = "Sa., 21.01.2023",
-            nextDrawText = "Nächste Ziehung: Mi., 25.01.2023",
-            jackpotAmountValue = "14",
-            jackpotUnitValue = "MIO",
-            jackpotFormatted = "14 MIO €",
-            mainBallsLabel = "GEWINNZAHLEN",
-            specialBallLabel = "Superzahl: 7",
-            regularNumbers = persistentListOf(4, 19, 24, 43, 44, 45),
-            specialNumbers = persistentListOf(7),
-            supplementaryGames = persistentListOf(
-                WidgetSupplementaryGame(name = "Spiel 77", winningNumber = "9415812"),
-                WidgetSupplementaryGame(name = "SUPER6", winningNumber = "381144")
+    companion object {
+        fun sampleWidgetStates(): ImmutableList<WidgetDrawState> = persistentListOf(
+            WidgetDrawState(
+                lotteryId = "6aus49",
+                title = "LOTTO 6aus49",
+                formattedDate = "Sa., 21.01.2023",
+                nextDrawText = "Nächste Ziehung: Mi., 25.01.2023",
+                jackpotAmountValue = "14",
+                jackpotUnitValue = "MIO",
+                jackpotFormatted = "14 MIO €",
+                mainBallsLabel = "GEWINNZAHLEN",
+                specialBallLabel = "Superzahl: 7",
+                regularNumbers = persistentListOf(4, 19, 24, 43, 44, 45),
+                specialNumbers = persistentListOf(7),
+                supplementaryGames = persistentListOf(
+                    WidgetSupplementaryGame(name = "Spiel 77", winningNumber = "9415812"),
+                    WidgetSupplementaryGame(name = "SUPER6", winningNumber = "381144")
+                ),
+                anchorLabel = "6AUS49",
+                isFixture = false,
+                specialNumberLabel = "Superzahl"
             ),
-            anchorLabel = "6AUS49",
-            isFixture = false,
-            specialNumberLabel = "Superzahl"
-        ),
-        WidgetDrawState(
-            lotteryId = "eurojackpot",
-            title = "Eurojackpot",
-            formattedDate = "Fr., 20.01.2023",
-            nextDrawText = "Nächste Ziehung: Di., 24.01.2023",
-            jackpotAmountValue = "45",
-            jackpotUnitValue = "MIO",
-            jackpotFormatted = "45 MIO €",
-            mainBallsLabel = "5 GEWINNZAHLEN",
-            specialBallLabel = "2 EUROZAHLEN",
-            regularNumbers = persistentListOf(3, 12, 18, 25, 41),
-            specialNumbers = persistentListOf(2, 7),
-            supplementaryGames = persistentListOf(),
-            anchorLabel = "EURO",
-            isFixture = false,
-            specialNumberLabel = "Eurozahlen"
+            WidgetDrawState(
+                lotteryId = "eurojackpot",
+                title = "Eurojackpot",
+                formattedDate = "Fr., 20.01.2023",
+                nextDrawText = "Nächste Ziehung: Di., 24.01.2023",
+                jackpotAmountValue = "45",
+                jackpotUnitValue = "MIO",
+                jackpotFormatted = "45 MIO €",
+                mainBallsLabel = "5 GEWINNZAHLEN",
+                specialBallLabel = "2 EUROZAHLEN",
+                regularNumbers = persistentListOf(3, 12, 18, 25, 41),
+                specialNumbers = persistentListOf(2, 7),
+                supplementaryGames = persistentListOf(),
+                anchorLabel = "EURO",
+                isFixture = false,
+                specialNumberLabel = "Eurozahlen"
+            )
         )
-    )
+    }
 }
+
+private fun glanceColor(
+    light: Color,
+    dark: Color = light
+): GlanceColorProvider = ColorProvider(
+    day = light,
+    night = dark
+)
 
 @Composable
 private fun Lotto24DualCardWidgetContent(
     states: ImmutableList<WidgetDrawState>
 ) {
     val glanceSize = LocalSize.current
-    val widgetWidth = glanceSize.width
+    val isLarge = glanceSize.height >= 180.dp || glanceSize.height == 0.dp
 
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
-            .background(Color(0xFFF1F5F9)) // App screen background canvas (#F1F5F9)
+            .background(Color.Transparent)
             .clickable(actionStartActivity<MainActivity>())
     ) {
         states.forEachIndexed { index, drawState ->
@@ -134,325 +133,509 @@ private fun Lotto24DualCardWidgetContent(
                 modifier = GlanceModifier
                     .defaultWeight()
                     .fillMaxWidth(),
-                widgetWidth = widgetWidth
+                isLarge = isLarge,
+                widgetWidth = glanceSize.width
             )
             if (index < states.size - 1) {
-                Spacer(modifier = GlanceModifier.height(4.dp))
+                Spacer(modifier = GlanceModifier.height(if (isLarge) 10.dp else 6.dp))
             }
         }
     }
 }
 
-/**
- * Replicates the home app screen's [LotteryCard] design in Jetpack Glance:
- * - Left vertical Golden Anchor Strip filled 100% height across card
- * - Main Card Body with Title, Calendar Date, Supplementary Games, Sunken Ball Tray, Special Pod & Next Draw footer
- * - Dynamically calculates adaptive ball diameter & controlled spacing from [widgetWidth]
- */
 @Composable
 private fun GlanceHomeStyleCard(
     drawState: WidgetDrawState,
     modifier: GlanceModifier = GlanceModifier,
+    isLarge: Boolean = true,
     widgetWidth: Dp = 320.dp
 ) {
     val isLotto6aus49 = drawState.lotteryId.contains("6aus49", ignoreCase = true)
-    val anchorBgColor = if (isLotto6aus49) Color(0xFFE5A91E) else Color(0xFFD97706)
-    val cardBgColor = Color(0xFFFFFFFF)
 
-    // Measure available card width and compute adaptive ball diameter & controlled gaps
-    val effectiveWidth = if (widgetWidth > 0.dp) widgetWidth else 320.dp
-    // Deduct: anchor (48dp) + card padding (16dp) + tray inner padding (8dp)
-    val usableTrayWidth = (effectiveWidth - 72.dp).coerceAtLeast(160.dp)
+    // AuraTheme Semantic Color Equivalents
+    val surfaceColor = glanceColor(light = Color(0xFFFFFFFF), dark = Color(0xFF0F172A))
+    val surfaceBorderColor = glanceColor(light = Color(0xFFE2E8F0), dark = Color(0xFF1E293B))
+    val surfaceContainerColor = glanceColor(light = Color(0xFFF8FAFC), dark = Color(0xFF1E293B))
+    val surfaceContainerLowColor = glanceColor(light = Color(0xFFF1F5F9), dark = Color(0xFF020617))
 
-    // 7 balls total across both 6+1 (LOTTO 6aus49) and 5+2 (Eurojackpot)
-    val baseGaps = 28.dp
-    val rawBallDiameter = (usableTrayWidth - baseGaps) / 7f
-    val ballDiameter = rawBallDiameter.coerceIn(20.dp, 28.dp)
+    val onSurfaceColor = glanceColor(light = Color(0xFF0F172A), dark = Color(0xFFF8FAFC))
+    val onSurfaceVariantColor = glanceColor(light = Color(0xFF475569), dark = Color(0xFFCBD5E1))
+    val onSurfaceSubtleColor = glanceColor(light = Color(0xFF64748B), dark = Color(0xFF94A3B8))
+    val primaryColor = glanceColor(light = Color(0xFFD97706), dark = Color(0xFFFBBF24))
 
-    // Controlled spacing: replace huge flexible spacer with proportional spacing
-    val remainingSpace = (usableTrayWidth - (ballDiameter * 7) - 6.dp).coerceAtLeast(16.dp)
-    val interBallGap = (remainingSpace / 8f).coerceIn(3.dp, 6.dp)
-    val podSeparatorGap = (remainingSpace - (interBallGap * 5f)).coerceIn(6.dp, 14.dp)
+    // Anchor Strip Colors
+    val anchorBgColor = if (isLotto6aus49) {
+        glanceColor(light = Color(0xFFE5A91E), dark = Color(0xFFD97706))
+    } else {
+        glanceColor(light = Color(0xFFB45309), dark = Color(0xFF78350F))
+    }
+    val onAnchorTitle = glanceColor(Color.White)
+    val onAnchorSubtitle = glanceColor(Color(0xFFFEF3C7))
+    val onAnchorUnit = glanceColor(Color(0xFFFDE68A))
 
-    Row(
-        modifier = modifier
-            .background(cardBgColor)
-            .cornerRadius(12.dp)
-    ) {
-        // ==================== 1. LEFT GOLDEN ANCHOR STRIP ====================
-        Box(
-            modifier = GlanceModifier
-                .width(48.dp)
-                .fillMaxHeight()
-                .background(anchorBgColor)
-                .cornerRadius(12.dp)
-                .padding(vertical = 4.dp, horizontal = 2.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                modifier = GlanceModifier.fillMaxHeight(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Top Monogram
-                Box(
-                    modifier = GlanceModifier
-                        .size(18.dp)
-                        .background(Color(0x33000000))
-                        .cornerRadius(999.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = if (isLotto6aus49) "🍀" else "E",
-                        style = TextStyle(
-                            color = ColorProvider(Color.White),
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
-                }
+    // ==================== BALL GEOMETRY (GLANCE <= 10 CHILDREN SAFE) ====================
+    val effectiveWidth = if (widgetWidth > 0.dp) (widgetWidth - 12.dp) else 300.dp
+    val anchorWidth = if (isLarge) 56.dp else 46.dp
+    val bodyHorizontalPadding = if (isLarge) 24.dp else 16.dp
+    val trayHorizontalPadding = 12.dp
+    val outerAndTrayBorders = 4.dp
 
-                Text(
-                    text = drawState.anchorLabel,
-                    style = TextStyle(
-                        color = ColorProvider(Color(0xFFFEF3C7)),
-                        fontSize = 7.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                )
+    val availableTrayWidth = (
+            effectiveWidth - anchorWidth - bodyHorizontalPadding - trayHorizontalPadding - outerAndTrayBorders
+            ).coerceAtLeast(150.dp)
 
-                Spacer(modifier = GlanceModifier.defaultWeight())
+    val regularCount = drawState.regularNumbers.size.coerceAtLeast(1)
+    val specialCount = drawState.specialNumbers.size
+    val totalBalls = regularCount + specialCount
 
-                // Vertical Jackpot Amount
-                Text(
-                    text = drawState.jackpotAmountValue ?: "–",
-                    style = TextStyle(
-                        color = ColorProvider(Color.White),
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                )
+    val isWide = effectiveWidth >= 340.dp
+    val regularGap = when {
+        !isLarge -> 0.dp
+        isWide -> 2.dp
+        else -> 2.dp
+    }
+    val podSeparatorGap = if (specialCount > 0) (if (isLarge) 6.dp else 4.dp) else 0.dp
+    val podInnerGap = if (specialCount > 1) 4.dp else 0.dp
+    val podPadding = if (specialCount > 0) 8.dp else 0.dp
 
-                Text(
-                    text = drawState.jackpotUnitValue ?: "MIO",
-                    style = TextStyle(
-                        color = ColorProvider(Color(0xFFFEF3C7)),
-                        fontSize = 8.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                )
+    val regularGapsCount = (regularCount - 1).coerceAtLeast(0)
+    val totalGapsAndPodWidth = (regularGap * regularGapsCount) + podSeparatorGap + podPadding + podInnerGap
 
-                Text(
-                    text = "EURO",
-                    style = TextStyle(
-                        color = ColorProvider(Color(0xFFFDE68A)),
-                        fontSize = 6.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                )
+    val maxFitDiameter = (availableTrayWidth - totalGapsAndPodWidth) / totalBalls
+    val targetDiameter = if (isLarge) (if (isWide) 40.dp else 38.dp) else 30.dp
+    val minDiameter = if (isLarge) 30.dp else 19.dp
+    val ballDiameter = maxFitDiameter.coerceIn(minDiameter, targetDiameter)
 
-                Spacer(modifier = GlanceModifier.defaultWeight())
-
-                // Bottom Seal Mark
-                Box(
-                    modifier = GlanceModifier
-                        .size(14.dp)
-                        .background(Color(0x22000000))
-                        .cornerRadius(999.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = if (isLotto6aus49) "✓" else "★",
-                        style = TextStyle(
-                            color = ColorProvider(Color(0xFFFEF3C7)),
-                            fontSize = 8.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
-                }
+    val resolvedSpecialBallLabel = drawState.specialBallLabel?.takeIf { it.isNotBlank() }
+        ?: if (drawState.specialNumbers.isNotEmpty()) {
+            if (isLotto6aus49) {
+                "Superzahl: ${drawState.specialNumbers.first()}"
+            } else {
+                "${drawState.specialNumbers.size} EUROZAHLEN"
             }
+        } else {
+            null
         }
 
-        // ==================== 2. MAIN CARD BODY ====================
-        Column(
+    // Outer Border Simulation
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(surfaceBorderColor)
+            .cornerRadius(16.dp)
+            .padding(1.dp)
+    ) {
+        Row(
             modifier = GlanceModifier
-                .defaultWeight()
-                .fillMaxHeight()
-                .padding(start = 8.dp, top = 4.dp, end = 8.dp, bottom = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxSize()
+                .background(surfaceColor)
+                .cornerRadius(15.dp)
         ) {
-            // Header: Title & Date
-            Row(
-                modifier = GlanceModifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+            // ==================== 1. LEFT GOLDEN JACKPOT ANCHOR STRIP ====================
+            Box(
+                modifier = GlanceModifier
+                    .width(anchorWidth)
+                    .fillMaxHeight()
+                    .background(anchorBgColor)
+                    .padding(vertical = if (isLarge) 10.dp else 6.dp, horizontal = 4.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = drawState.title,
-                    style = TextStyle(
-                        color = ColorProvider(Color(0xFF0F172A)),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-
-                Spacer(modifier = GlanceModifier.defaultWeight())
-
-                Text(
-                    text = "📅 ${drawState.formattedDate}",
-                    style = TextStyle(
-                        color = ColorProvider(Color(0xFF64748B)),
-                        fontSize = 8.sp
-                    )
-                )
-            }
-
-            // Supplementary Games (LOTTO 6aus49: Spiel 77, SUPER6)
-            if (drawState.supplementaryGames.isNotEmpty()) {
-                Spacer(modifier = GlanceModifier.height(2.dp))
-                Row(
-                    modifier = GlanceModifier.fillMaxWidth(),
+                Column(
+                    modifier = GlanceModifier.fillMaxHeight(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    drawState.supplementaryGames.forEachIndexed { idx, game ->
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "${game.name}: ",
-                                style = TextStyle(
-                                    color = ColorProvider(Color(0xFF64748B)),
-                                    fontSize = 7.sp,
-                                    fontWeight = FontWeight.Medium
-                                )
+                    Box(
+                        modifier = GlanceModifier
+                            .size(if (isLarge) 32.dp else 24.dp)
+                            .background(Color(0x33FFFFFF))
+                            .cornerRadius(if (isLotto6aus49) 999.dp else 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = if (isLotto6aus49) "🍀" else "E",
+                            style = TextStyle(
+                                color = onAnchorTitle,
+                                fontSize = if (isLarge) {
+                                    if (isLotto6aus49) 15.sp else 17.sp
+                                } else 12.sp,
+                                fontWeight = FontWeight.Bold
                             )
+                        )
+                    }
+
+                    Spacer(modifier = GlanceModifier.height(2.dp))
+
+                    Text(
+                        text = if (isLotto6aus49) "6AUS49" else "EURO",
+                        style = TextStyle(
+                            color = onAnchorSubtitle,
+                            fontSize = if (isLarge) 9.sp else 8.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+
+                    Spacer(modifier = GlanceModifier.defaultWeight())
+
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = drawState.jackpotAmountValue ?: "–",
+                            style = TextStyle(
+                                color = onAnchorTitle,
+                                fontSize = if (isLarge) 25.sp else 18.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                        Text(
+                            text = drawState.jackpotUnitValue ?: "MIO",
+                            style = TextStyle(
+                                color = onAnchorSubtitle,
+                                fontSize = if (isLarge) 13.sp else 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                        Text(
+                            text = "EURO",
+                            style = TextStyle(
+                                color = onAnchorUnit,
+                                fontSize = if (isLarge) 8.sp else 7.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+
+                    Spacer(modifier = GlanceModifier.defaultWeight())
+
+                    Box(
+                        modifier = GlanceModifier
+                            .size(if (isLarge) 20.dp else 16.dp)
+                            .background(Color(0x26FFFFFF))
+                            .cornerRadius(999.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = if (isLotto6aus49) "✓" else "★",
+                            style = TextStyle(
+                                color = onAnchorSubtitle,
+                                fontSize = if (isLarge) 10.sp else 9.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+                }
+            }
+
+            // ==================== 2. MAIN CARD BODY ====================
+            Column(
+                modifier = GlanceModifier
+                    .defaultWeight()
+                    .fillMaxHeight()
+                    .background(surfaceColor),
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(
+                    modifier = GlanceModifier
+                        .fillMaxWidth()
+                        .padding(
+                            start = if (isLarge) 12.dp else 8.dp,
+                            top = if (isLarge) 10.dp else 6.dp,
+                            end = if (isLarge) 12.dp else 8.dp
+                        )
+                ) {
+                    // Top Header Row
+                    Row(
+                        modifier = GlanceModifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Column {
+                            if (isLotto6aus49) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = "LOTTO ",
+                                        style = TextStyle(
+                                            color = onSurfaceColor,
+                                            fontSize = if (isLarge) 18.sp else 14.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    )
+                                    Text(
+                                        text = "6aus49",
+                                        style = TextStyle(
+                                            color = primaryColor,
+                                            fontSize = if (isLarge) 14.sp else 11.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    )
+                                }
+                            } else {
+                                Text(
+                                    text = "Eurojackpot",
+                                    style = TextStyle(
+                                        color = onSurfaceColor,
+                                        fontSize = if (isLarge) 18.sp else 14.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                            }
+
+                            Spacer(modifier = GlanceModifier.height(2.dp))
+
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "📅 ",
+                                    style = TextStyle(fontSize = if (isLarge) 11.sp else 9.5.sp)
+                                )
+                                Text(
+                                    text = drawState.formattedDate,
+                                    style = TextStyle(
+                                        color = onSurfaceVariantColor,
+                                        fontSize = if (isLarge) 13.sp else 10.5.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = GlanceModifier.defaultWeight())
+
+                        if (isLotto6aus49 && drawState.supplementaryGames.isNotEmpty()) {
+                            Box(
+                                modifier = GlanceModifier
+                                    .background(surfaceBorderColor)
+                                    .cornerRadius(8.dp)
+                                    .padding(1.dp)
+                            ) {
+                                Box(
+                                    modifier = GlanceModifier
+                                        .background(surfaceContainerColor)
+                                        .cornerRadius(7.dp)
+                                        .padding(
+                                            horizontal = if (isLarge) 7.dp else 5.dp,
+                                            vertical = if (isLarge) 3.dp else 2.dp
+                                        )
+                                ) {
+                                    Column(horizontalAlignment = Alignment.End) {
+                                        drawState.supplementaryGames.forEach { game ->
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Text(
+                                                    text = "${game.name}: ",
+                                                    style = TextStyle(
+                                                        color = onSurfaceSubtleColor,
+                                                        fontSize = if (isLarge) 9.5.sp else 8.sp,
+                                                        fontWeight = FontWeight.Medium
+                                                    )
+                                                )
+                                                Text(
+                                                    text = game.winningNumber,
+                                                    style = TextStyle(
+                                                        color = if (game.name.contains("77", ignoreCase = true)) {
+                                                            glanceColor(
+                                                                light = Color(0xFFD97706),
+                                                                dark = Color(0xFFFBBF24)
+                                                            )
+                                                        } else {
+                                                            glanceColor(
+                                                                light = Color(0xFFDC2626),
+                                                                dark = Color(0xFFF87171)
+                                                            )
+                                                        },
+                                                        fontSize = if (isLarge) 9.5.sp else 8.sp,
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = GlanceModifier.height(if (isLarge) 7.dp else 4.dp))
+
+                    // ==================== SUNKEN BALL TRAY ====================
+                    Row(
+                        modifier = GlanceModifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = drawState.mainBallsLabel,
+                            style = TextStyle(
+                                color = onSurfaceSubtleColor,
+                                fontSize = if (isLarge) 10.sp else 8.5.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+
+                        Spacer(modifier = GlanceModifier.defaultWeight())
+
+                        if (resolvedSpecialBallLabel != null) {
                             Text(
-                                text = game.winningNumber,
+                                text = resolvedSpecialBallLabel,
                                 style = TextStyle(
-                                    color = ColorProvider(
-                                        if (game.name.contains("77")) Color(0xFFD97706) else Color(0xFFDC2626)
-                                    ),
-                                    fontSize = 7.sp,
+                                    color = if (isLotto6aus49) {
+                                        glanceColor(light = Color(0xFFDC2626), dark = Color(0xFFF87171))
+                                    } else {
+                                        glanceColor(light = Color(0xFFD97706), dark = Color(0xFFFBBF24))
+                                    },
+                                    fontSize = if (isLarge) 10.sp else 8.5.sp,
                                     fontWeight = FontWeight.Bold
                                 )
                             )
                         }
-                        if (idx < drawState.supplementaryGames.size - 1) {
-                            Spacer(modifier = GlanceModifier.width(6.dp))
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = GlanceModifier.height(2.dp))
-
-            // Tray Header Labels
-            Row(
-                modifier = GlanceModifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = drawState.mainBallsLabel,
-                    style = TextStyle(
-                        color = ColorProvider(Color(0xFF94A3B8)),
-                        fontSize = 7.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-
-                Spacer(modifier = GlanceModifier.defaultWeight())
-
-                val specialBallLabel = drawState.specialBallLabel
-                if (specialBallLabel != null) {
-                    Text(
-                        text = specialBallLabel,
-                        style = TextStyle(
-                            color = ColorProvider(
-                                if (isLotto6aus49) Color(0xFFDC2626) else Color(0xFFB45309)
-                            ),
-                            fontSize = 7.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
-                }
-            }
-
-            Spacer(modifier = GlanceModifier.height(2.dp))
-
-            // Sunken Ball Tray (adaptive balls with controlled spacing using full horizontal width)
-            Box(
-                modifier = GlanceModifier
-                    .fillMaxWidth()
-                    .background(Color(0xFFF8FAFC))
-                    .cornerRadius(999.dp)
-                    .padding(horizontal = 4.dp, vertical = 2.dp)
-            ) {
-                Row(
-                    modifier = GlanceModifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Regular Balls
-                    drawState.regularNumbers.forEachIndexed { index, number ->
-                        StaticGlanceBall(
-                            number = number,
-                            backgroundColor = Color(0xFFFFFFFF),
-                            textColor = Color(0xFF0F172A),
-                            diameter = ballDiameter
-                        )
-                        if (index < drawState.regularNumbers.size - 1) {
-                            Spacer(modifier = GlanceModifier.width(interBallGap))
-                        }
                     }
 
-                    // Controlled separator gap between regular balls and special pod
-                    Spacer(modifier = GlanceModifier.width(podSeparatorGap))
+                    Spacer(modifier = GlanceModifier.height(3.dp))
 
-                    // Special Balls Pod (Contrast Capsule)
+                    // Sunken Pill Container (Max 8 children inside Row -> Never drops 6th ball or Superzahl!)
                     Box(
                         modifier = GlanceModifier
-                            .background(
-                                if (isLotto6aus49) Color(0xFFFEE2E2) else Color(0xFFFEF3C7)
-                            )
+                            .fillMaxWidth()
+                            .background(surfaceBorderColor)
                             .cornerRadius(999.dp)
-                            .padding(horizontal = 3.dp, vertical = 2.dp)
+                            .padding(1.dp)
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            drawState.specialNumbers.forEachIndexed { i, specialNum ->
-                                StaticGlanceBall(
-                                    number = specialNum,
-                                    backgroundColor = if (isLotto6aus49) Color(0xFFDC2626) else Color(0xFFD97706),
-                                    textColor = Color.White,
-                                    diameter = ballDiameter
-                                )
-                                if (i < drawState.specialNumbers.size - 1) {
-                                    Spacer(modifier = GlanceModifier.width(interBallGap))
+                        Box(
+                            modifier = GlanceModifier
+                                .fillMaxWidth()
+                                .background(surfaceContainerLowColor)
+                                .cornerRadius(999.dp)
+                                .padding(horizontal = 6.dp, vertical = if (isLarge) 4.dp else 2.5.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Row(
+                                modifier = GlanceModifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // Regular Balls: spacing via endPadding so zero extra Spacer children are created
+                                drawState.regularNumbers.forEachIndexed { index, number ->
+                                    val endSpace = if (index < drawState.regularNumbers.size - 1) regularGap else 0.dp
+                                    StaticGlanceBall(
+                                        number = number,
+                                        backgroundColor = Color(0xFFFFFFFF),
+                                        darkBackgroundColor = Color(0xFF1E293B),
+                                        borderColor = Color(0xFFE2E8F0),
+                                        darkBorderColor = Color(0xFF334155),
+                                        textColor = Color(0xFF0F172A),
+                                        darkTextColor = Color(0xFFF8FAFC),
+                                        diameter = ballDiameter,
+                                        endPadding = endSpace
+                                    )
+                                }
+
+                                // Single flexible Spacer distributes remaining width on wide screens
+                                if (drawState.specialNumbers.isNotEmpty()) {
+                                    Spacer(modifier = GlanceModifier.defaultWeight())
+
+                                    val (podBg, podBorder) = if (isLotto6aus49) {
+                                        glanceColor(light = Color(0xFFFEE2E2), dark = Color(0xFF450A0A)) to
+                                                glanceColor(light = Color(0xFFFECACA), dark = Color(0xFF7F1D1D))
+                                    } else {
+                                        glanceColor(light = Color(0xFFFEF3C7), dark = Color(0xFF451A03)) to
+                                                glanceColor(light = Color(0xFFFDE68A), dark = Color(0xFF78350F))
+                                    }
+
+                                    val (specialBallLight, specialBallDark) = if (isLotto6aus49) {
+                                        Color(0xFFDC2626) to Color(0xFFEF4444)
+                                    } else {
+                                        Color(0xFFD97706) to Color(0xFFF59E0B)
+                                    }
+
+                                    Box(
+                                        modifier = GlanceModifier
+                                            .background(podBorder)
+                                            .cornerRadius(999.dp)
+                                            .padding(1.dp)
+                                    ) {
+                                        Box(
+                                            modifier = GlanceModifier
+                                                .background(podBg)
+                                                .cornerRadius(999.dp)
+                                                .padding(horizontal = 3.dp, vertical = 2.dp)
+                                        ) {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                drawState.specialNumbers.forEachIndexed { i, specialNum ->
+                                                    val specialEndSpace = if (i < drawState.specialNumbers.size - 1) podInnerGap else 0.dp
+                                                    StaticGlanceBall(
+                                                        number = specialNum,
+                                                        backgroundColor = specialBallLight,
+                                                        darkBackgroundColor = specialBallDark,
+                                                        borderColor = specialBallLight,
+                                                        darkBorderColor = specialBallDark,
+                                                        textColor = Color.White,
+                                                        darkTextColor = Color.White,
+                                                        diameter = ballDiameter,
+                                                        endPadding = specialEndSpace
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            // Bottom Section: Nächste Ziehung (Next Draw)
-            val nextDrawText = drawState.nextDrawText
-            if (nextDrawText != null) {
-                Spacer(modifier = GlanceModifier.height(3.dp))
-                Row(
-                    modifier = GlanceModifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Spacer(modifier = GlanceModifier.defaultWeight())
-                    Box(
-                        modifier = GlanceModifier
-                            .background(Color(0xFFEFF6FF))
-                            .cornerRadius(4.dp)
-                            .padding(horizontal = 5.dp, vertical = 1.dp)
-                    ) {
-                        Text(
-                            text = nextDrawText,
-                            style = TextStyle(
-                                color = ColorProvider(Color(0xFF1D4ED8)),
-                                fontSize = 7.sp,
-                                fontWeight = FontWeight.Bold
-                            )
+                // Flexible Spacer pushes Next Draw Pill flush to the bottom-right corner
+                Spacer(modifier = GlanceModifier.defaultWeight())
+
+                // ==================== BOTTOM STATUS (NEXT DRAW PILL) ====================
+                val nextDrawText = drawState.nextDrawText
+                if (nextDrawText != null) {
+                    val prefix = "Nächste Ziehung:"
+                    val hasPrefix = nextDrawText.startsWith(prefix, ignoreCase = true)
+                    val datePart = if (hasPrefix) nextDrawText.removePrefix(prefix).trim() else nextDrawText
+
+                    val (pillBg, pillLabelColor, pillDateColor) = if (isLotto6aus49) {
+                        Triple(
+                            glanceColor(Color(0xFFCA8A04)),
+                            glanceColor(Color(0xFFFEF3C7)),
+                            glanceColor(Color.White)
                         )
+                    } else {
+                        Triple(
+                            glanceColor(Color(0xFF451A03)),
+                            glanceColor(Color(0xFFFDE68A)),
+                            glanceColor(light = Color(0xFFF59E0B), dark = Color(0xFFFBBF24))
+                        )
+                    }
+
+                    Row(
+                        modifier = GlanceModifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.Bottom,
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        Box(
+                            modifier = GlanceModifier
+                                .background(pillBg)
+                                .cornerRadius(if (isLarge) 8.dp else 6.dp)
+                                .padding(
+                                    horizontal = if (isLarge) 12.dp else 8.dp,
+                                    vertical = if (isLarge) 4.dp else 2.5.dp
+                                )
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (hasPrefix) {
+                                    Text(
+                                        text = "Nächste Ziehung: ",
+                                        style = TextStyle(
+                                            color = pillLabelColor,
+                                            fontSize = if (isLarge) 11.sp else 9.sp,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                    )
+                                }
+                                Text(
+                                    text = datePart,
+                                    style = TextStyle(
+                                        color = pillDateColor,
+                                        fontSize = if (isLarge) 11.sp else 9.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -464,29 +647,123 @@ private fun GlanceHomeStyleCard(
 private fun StaticGlanceBall(
     number: Int,
     backgroundColor: Color,
+    borderColor: Color = backgroundColor,
     textColor: Color,
-    diameter: Dp = 20.dp
+    diameter: Dp = 29.dp,
+    endPadding: Dp = 0.dp,
+    darkBackgroundColor: Color = backgroundColor,
+    darkBorderColor: Color = borderColor,
+    darkTextColor: Color = textColor
 ) {
     val fontSize = when {
-        diameter >= 26.dp -> if (number >= 10) 10.sp else 11.sp
-        diameter >= 23.dp -> if (number >= 10) 9.sp else 10.sp
-        else -> if (number >= 10) 8.sp else 9.sp
+        diameter >= 30.dp -> if (number >= 10) 13.sp else 14.sp
+        diameter >= 26.dp -> if (number >= 10) 11.5.sp else 12.5.sp
+        diameter >= 22.dp -> if (number >= 10) 10.sp else 11.sp
+        else -> if (number >= 10) 8.5.sp else 9.5.sp
     }
 
+    val bgProvider = glanceColor(light = backgroundColor, dark = darkBackgroundColor)
+    val borderProvider = glanceColor(light = borderColor, dark = darkBorderColor)
+    val textProvider = glanceColor(light = textColor, dark = darkTextColor)
+    val hasDistinctBorder = backgroundColor != borderColor || darkBackgroundColor != darkBorderColor
+
     Box(
-        modifier = GlanceModifier
-            .size(diameter)
-            .background(backgroundColor)
-            .cornerRadius(999.dp),
+        modifier = GlanceModifier.padding(end = endPadding),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = number.toString(),
-            style = TextStyle(
-                color = ColorProvider(textColor),
-                fontSize = fontSize,
-                fontWeight = FontWeight.Bold
-            )
+        if (hasDistinctBorder) {
+            Box(
+                modifier = GlanceModifier
+                    .size(diameter)
+                    .background(borderProvider)
+                    .cornerRadius(999.dp)
+                    .padding(1.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = GlanceModifier
+                        .fillMaxSize()
+                        .background(bgProvider)
+                        .cornerRadius(999.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = number.toString(),
+                        style = TextStyle(
+                            color = textProvider,
+                            fontSize = fontSize,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
+            }
+        } else {
+            Box(
+                modifier = GlanceModifier
+                    .size(diameter)
+                    .background(bgProvider)
+                    .cornerRadius(999.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = number.toString(),
+                    style = TextStyle(
+                        color = textProvider,
+                        fontSize = fontSize,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
+        }
+    }
+}
+
+// =============================================================================
+// PREVIEWS (Android Studio Jetpack Glance Tooling)
+// =============================================================================
+
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Preview(widthDp = 320, heightDp = 350)
+@Composable
+fun Lotto24GlanceWidgetLargePreview() {
+    GlanceTheme {
+        Lotto24DualCardWidgetContent(states = Lotto24GlanceWidget.sampleWidgetStates())
+    }
+}
+
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Preview(widthDp = 420, heightDp = 350)
+@Composable
+fun Lotto24GlanceWidgetWidePreview() {
+    GlanceTheme {
+        Lotto24DualCardWidgetContent(states = Lotto24GlanceWidget.sampleWidgetStates())
+    }
+}
+
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Preview(widthDp = 320, heightDp = 170)
+@Composable
+fun Lotto24GlanceSingleCard6aus49Preview() {
+    GlanceTheme {
+        GlanceHomeStyleCard(
+            drawState = Lotto24GlanceWidget.sampleWidgetStates().first(),
+            modifier = GlanceModifier.fillMaxSize(),
+            isLarge = true,
+            widgetWidth = 320.dp
+        )
+    }
+}
+
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Preview(widthDp = 320, heightDp = 170)
+@Composable
+fun Lotto24GlanceSingleCardEurojackpotPreview() {
+    GlanceTheme {
+        GlanceHomeStyleCard(
+            drawState = Lotto24GlanceWidget.sampleWidgetStates().last(),
+            modifier = GlanceModifier.fillMaxSize(),
+            isLarge = true,
+            widgetWidth = 320.dp
         )
     }
 }
