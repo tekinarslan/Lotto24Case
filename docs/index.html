@@ -407,9 +407,9 @@
     <div class="sidebar-footer">
       <div class="badge-status" style="background-color: var(--success-light); color: var(--success);">
         <span class="badge-pulse" style="background-color: var(--success);"></span>
-        <span>Phase 7 Completed</span>
+        <span>All 10 Phases Completed</span>
       </div>
-      <div style="margin-top: 6px; font-size: 11px;">Current: Phase 10 Screenshot Testing | Next: Phase 9 Bonus Features</div>
+      <div style="margin-top: 6px; font-size: 11px;">Status: 10/10 Phases Completed (100%)</div>
     </div>
   </aside>
 
@@ -734,6 +734,9 @@
     <section id="roadmap" class="tab-content">
       <h1>Micro-Phases Execution Roadmap</h1>
       <p class="page-lead">Granular, verifiable milestones. Each step includes automated verification and atomic Git commit discipline.</p>
+      <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; padding: 10px 14px; margin: 12px 0 20px; font-size: 13.5px; color: #92400e;">
+        <strong>Note:</strong> Since the live Lotto24 API endpoint returns HTTP 404 (Not Found), fixture mocks are utilized for data flow and verification.
+      </div>
 
       <div class="phase-card">
         <div class="phase-header">
@@ -901,7 +904,7 @@
       <div class="phase-card">
         <div class="phase-header">
           <span class="phase-title">Phase 9: Bonus Tasks (Glance Widget & External Links)</span>
-          <span class="pill pill-complete">Completed</span>
+          <span class="pill pill-done">Completed</span>
         </div>
         <p>Android AppWidget built with Jetpack Glance, iOS WidgetKit implementation, and multiplatform intent router.</p>
         <div class="checklist-item">
@@ -918,17 +921,17 @@
       <div class="phase-card">
         <div class="phase-header">
           <span class="phase-title">Phase 10: Screenshot Testing, Polishing & Documentation</span>
-          <span class="pill pill-pending">Pending</span>
+          <span class="pill pill-done">Completed</span>
         </div>
         <p>Automated preview scanner tests, README documentation, and final review check.</p>
         <div class="checklist-item">
-          <input type="checkbox"> Integrate <code>ComposablePreviewScanner</code> for automated screenshot testing
+          <input type="checkbox" checked disabled> Integrate <code>ComposablePreviewScanner</code> for automated screenshot testing
         </div>
         <div class="checklist-item">
-          <input type="checkbox"> Comprehensive <code>README.md</code> with architecture diagrams & pairing discussion points
+          <input type="checkbox" checked disabled> Comprehensive <code>README.md</code> with architecture diagrams & pairing discussion points
         </div>
         <div class="checklist-item">
-          <input type="checkbox"> Final build & test verification across all modules
+          <input type="checkbox" checked disabled> Final build & test verification across all modules
         </div>
       </div>
     </section>
